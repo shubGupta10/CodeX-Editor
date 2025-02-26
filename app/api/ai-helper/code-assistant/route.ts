@@ -1,0 +1,134 @@
+import { NextResponse, NextRequest } from "next/server";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/options";
+import { aiRateLimit } from "@/lib/ratelimit";
+import redis from "@/redis/redis"; // Ensure it's configured for Upstash
+import UserLimitModel from "@/models/User_limit";
+
+const MAX_DAILY_REQUESTS = 30;
+const ONE_DAY_IN_SECONDS = 86400;
+
+export async function POST(req: NextRequest) {
+  try {
+    const { prompt, code } = await req.json();
+    const session = await getServerSession(authOptions);
+
+    if (!prompt || !code) {
+      return NextResponse.json(
+        { message: "Prompt and code are required" },
+        { status: 400 }
+      );
+    }
+
+    const userId = session?.user.id;
+    if (!userId) {
+      return NextResponse.json(
+        { message: "User is unauthorized" },
+        { status: 403 }
+      );
+    }
+
+    // Check existing AI rate limit (DO NOT TOUCH THIS)
+    const limitResult = await aiRateLimit(userId);
+    if (!limitResult.success) {
+      return NextResponse.json(
+        { message: limitResult.message },
+        { status: 429 }
+      );
+    }
+
+    // Check Redis for short-term limit
+    const redisKey = `user:${userId}:daily_requests`;
+
+    // Increment request count atomically
+    const requestCount = await redis.incr(redisKey);
+
+    // If this is the first request of the day, set expiry
+    if (requestCount === 1) {
+      await redis.expire(redisKey, ONE_DAY_IN_SECONDS);
+    }
+
+    if (requestCount > MAX_DAILY_REQUESTS) {
+      return NextResponse.json(
+        { message: "You have exceeded the daily limit of AI requests (30)." },
+        { status: 429 }
+      );
+    }
+
+    // Store the request count in the database for permanent tracking
+    await UserLimitModel.findOneAndUpdate(
+      { userId },
+      { $inc: { fileCount: 1 } },
+      { upsert: true, new: true }
+    );
+
+    const llm = new ChatGoogleGenerativeAI({
+      modelName: "gemini-1.5-flash",
+      apiKey: process.env.GOOGLE_GEMINI_API_KEY,
+      maxOutputTokens: 1024,
+      temperature: 0.7,
+    });
+
+    if (!process.env.GOOGLE_GEMINI_API_KEY) {
+      console.error("Missing Gemini API key");
+      return NextResponse.json(
+        { message: "Server configuration error" },
+        { status: 500 }
+      );
+    }
+
+    const fullPrompt = `You are an expert code assistant. Given the code below, analyze it and provide detailed improvements, bug fixes, and performance optimizations.
+
+Code:
+\`\`\`
+${code}
+\`\`\`
+
+User request: ${prompt}
+
+Please provide your response in markdown format with code examples as needed.`;
+
+    try {
+      const stream = await llm.stream(fullPrompt);
+      const readableStream = new ReadableStream({
+        async start(controller) {
+          try {
+            for await (const chunk of stream) {
+              if (chunk.content) {
+                const content =
+                  typeof chunk.content === "string"
+                    ? chunk.content
+                    : JSON.stringify(chunk.content);
+                controller.enqueue(new TextEncoder().encode(content));
+              }
+            }
+            controller.close();
+          } catch (error) {
+            console.error("Streaming error:", error);
+            controller.error(error);
+          }
+        },
+      });
+
+      return new Response(readableStream, {
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "no-cache",
+        },
+      });
+    } catch (streamError: any) {
+      console.error("Error creating stream:", streamError);
+      return NextResponse.json(
+        { message: "Error generating AI response", error: streamError.message },
+        { status: 500 }
+      );
+    }
+  } catch (error: any) {
+    console.error("Error in Gemini API:", error);
+    return NextResponse.json(
+      { message: "Internal Server Error", error: error.message },
+      { status: 500 }
+    );
+  }
+}

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { 
-  FilesIcon, 
-  Search, 
+import {
+  FilesIcon,
+  Search,
   SettingsIcon,
   Settings
 } from "lucide-react";
@@ -20,11 +20,11 @@ export default function SidebarNav({ activeTab, onTabChange, collapsed = false }
     { id: "search", icon: <Search className="w-5 h-5" />, tooltip: "Search" },
     // { id: "git", icon: <GitBranchIcon className="w-5 h-5" />, tooltip: "Source Control" },
     // { id: "debug", icon: <BugIcon className="w-5 h-5" />, tooltip: "Run and Debug" },
-    { id: "settings", icon: <Settings  className="w-5 h-5" />, tooltip: "Settings" },
+    { id: "settings", icon: <Settings className="w-5 h-5" />, tooltip: "Settings" },
   ];
 
   return (
-    <div className="h-full bg-[#333333] w-12 flex flex-col items-center justify-between py-2">
+    <div className="h-full bg-[#1e1e1e] w-12 flex flex-col items-center justify-between py-2 border-r border-gray-800">
       <div className="flex flex-col items-center space-y-4">
         <TooltipProvider delayDuration={300}>
           {sidebarIcons.map((item) => (
@@ -35,15 +35,15 @@ export default function SidebarNav({ activeTab, onTabChange, collapsed = false }
                   size="icon"
                   className={`w-10 h-10 rounded-sm ${
                     activeTab === item.id
-                      ? "bg-[#252526] text-white border-l-2 border-blue-500"
-                      : "text-gray-400 hover:text-black"
+                      ? "bg-[#252525] text-emerald-400 border-l-2 border-emerald-600"
+                      : "text-gray-400 hover:text-emerald-400 hover:bg-[#252525] transition-colors"
                   }`}
                   onClick={() => onTabChange(item.id)}
                 >
                   {item.icon}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="right" className="bg-[#252526] text-white border-[#3c3c3c]">
+              <TooltipContent side="right" className="bg-[#252525] text-white border-gray-800">
                 {item.tooltip}
               </TooltipContent>
             </Tooltip>
@@ -54,15 +54,15 @@ export default function SidebarNav({ activeTab, onTabChange, collapsed = false }
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="w-10 h-10 rounded-sm text-gray-400 hover:text-white mt-auto"
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-10 h-10 rounded-sm text-gray-400 hover:text-emerald-400 hover:bg-[#252525] transition-colors mt-auto"
             >
               <SettingsIcon className="w-5 h-5" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="right" className="bg-[#252526] text-white border-[#3c3c3c]">
+          <TooltipContent side="right" className="bg-[#252525] text-white border-gray-800">
             Settings
           </TooltipContent>
         </Tooltip>

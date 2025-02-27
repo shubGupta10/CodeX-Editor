@@ -12,55 +12,59 @@ function Home() {
     <div className="bg-[#1e1e1e] text-white min-h-screen overflow-hidden">
       <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-emerald-500/10 blur-[100px] rounded-full z-0"></div>
       <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-emerald-500/10 blur-[100px] rounded-full z-0"></div>
-      
+
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <HeroSection/>
-        <AboutSection/>
-        <FeatureSection/>
-        <CTASection/>
-        <Footer/>
+        <HeroSection />
+        <AboutSection />
+        <FeatureSection />
+        <CTASection />
+        <Footer />
       </main>
     </div>
   )
 }
 
-function HeroSection(){
+function HeroSection() {
   const router = useRouter();
-  return(
+  return (
     <div className="py-16 md:py-24 flex flex-col md:flex-row items-center">
       <div className="flex-1 text-left md:pr-12">
         <div className="inline-flex items-center px-3 py-1 mb-6 rounded-full bg-emerald-900/30 border border-emerald-500/20 text-emerald-400 text-sm">
           <Star size={14} className="mr-1" /> New code assistance features
         </div>
-        
+
         <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 leading-tight">
           <span className="relative">
             Modern Code <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">Editor</span>
           </span>
         </h1>
-        
+
         <p className="text-xl text-gray-300 mb-8 max-w-xl">
           CodeX is a code editor with smart suggestions to help you write code more efficiently.
         </p>
-        
+
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <Button onClick={() => router.push("/auth/register")} className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-6 text-lg rounded-md flex items-center group transition-all">
             Try CodeX
             <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={20} />
           </Button>
-          
+
           <Button variant="outline" className="border-gray-700 hover:bg-gray-300 text-black px-8 py-6 text-lg rounded-md">
             View Demo
           </Button>
         </div>
-        
+
         <div className="flex items-center text-gray-400 text-sm">
-          <Check size={16} className="text-emerald-400 mr-1" /> Early access available
+          <span className="flex items-center">
+            <Check size={16} className="text-emerald-400 mr-1" /> AI-powered assistant
+          </span>
           <span className="mx-2">•</span>
-          <Check size={16} className="text-emerald-400 mr-1" /> Free during beta
+          <span className="flex items-center">
+            <Check size={16} className="text-emerald-400 mr-1" /> Secure code execution environment
+          </span>
         </div>
       </div>
-      
+
       <div className="flex-1 mt-12 md:mt-0 relative">
         <div className="absolute -inset-4 bg-emerald-500/20 rounded-2xl blur-xl"></div>
         <div className="relative overflow-hidden rounded-xl border border-gray-800 shadow-2xl">
@@ -86,7 +90,7 @@ function HeroSection(){
   )
 }
 
-function AboutSection(){
+function AboutSection() {
   return (
     <div className="py-20 md:py-28 flex flex-col items-center">
       <div className="text-center mb-16">
@@ -111,7 +115,7 @@ function AboutSection(){
           objectFit="contain"
           className="relative z-20 rounded-xl"
         />
-        
+
         <div className="absolute -bottom-6 -right-6 bg-[#252525] border border-gray-800 p-4 rounded-lg shadow-xl z-30 max-w-xs">
           <div className="flex items-start">
             <div className="text-emerald-400 bg-emerald-400/10 p-2 rounded-lg mr-3">
@@ -128,41 +132,42 @@ function AboutSection(){
   )
 }
 
-function FeatureSection(){
+function FeatureSection() {
   const features = [
     {
-      title: "Code Assistance",
-      description: "Get helpful code suggestions based on what you're typing to help speed up common coding tasks.",
-      icon: <BrainCircuit size={24} />
-    },
-    {
-      title: "Version Control",
-      description: "Built-in support for tracking changes to your code and collaborating with others.",
-      icon: <GitBranch size={24} />
-    },
-    {
-      title: "Smart Completions",
-      description: "Intelligent code completions that learn from common patterns to offer relevant suggestions.",
-      icon: <Zap size={24} />
+      title: "Multi-Language Support",
+      description: "Write and collaborate in multiple programming languages with seamless integration.",
+      icon: <GitBranch size={24} />,
     },
     {
       title: "Syntax Highlighting",
-      description: "Clear visual distinction between different code elements makes your code easier to read and understand.",
-      icon: <Palette size={24} />
+      description: "Enhanced readability with clear visual distinction between code elements.",
+      icon: <Palette size={24} />,
     },
     {
-      title: "Cross-Platform",
-      description: "Use CodeX on different devices with a consistent experience across platforms.",
-      icon: <Laptop size={24} />
+      title: "Smart Code Assistance",
+      description: "AI-powered suggestions to speed up coding and reduce errors.",
+      icon: <BrainCircuit size={24} />,
     },
     {
-      title: "Performance Focus",
-      description: "Built for speed and responsiveness, even when working with larger codebases.",
-      icon: <Sparkles size={24} />
-    }
+      title: "Intelligent Code Completion",
+      description: "Predictive suggestions based on common patterns for faster development.",
+      icon: <Zap size={24} />,
+    },
+    {
+      title: "Cross-Platform Compatibility",
+      description: "A seamless coding experience across all your devices.",
+      icon: <Laptop size={24} />,
+    },
+    {
+      title: "Optimized Performance",
+      description: "Designed for speed and efficiency, even with large projects.",
+      icon: <Sparkles size={24} />,
+    },
   ];
 
-  return(
+
+  return (
     <div className="py-20">
       <div className="text-center mb-16">
         <div className="inline-flex items-center px-3 py-1 mb-4 rounded-full bg-emerald-900/30 border border-emerald-500/20 text-emerald-400 text-sm">
@@ -175,11 +180,11 @@ function FeatureSection(){
           Designed to make your coding workflow smoother and more productive
         </p>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {features.map((feature, index) => (
-          <div 
-            key={index} 
+          <div
+            key={index}
             className="group p-8 rounded-xl bg-gradient-to-b from-[#252525] to-[#222] border border-gray-800 hover:border-emerald-500/50 transition-all duration-300 hover:translate-y-[-4px] hover:shadow-lg hover:shadow-emerald-900/20"
           >
             <div className="flex items-center mb-4">
@@ -198,7 +203,7 @@ function FeatureSection(){
   )
 }
 
-function CTASection(){
+function CTASection() {
   return (
     <div className="py-20 my-10">
       <div className="max-w-4xl mx-auto text-center relative">
@@ -207,14 +212,14 @@ function CTASection(){
           <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-emerald-500 text-[#1e1e1e] font-bold px-6 py-2 rounded-full text-sm">
             BETA ACCESS
           </div>
-          
+
           <h2 className="text-3xl md:text-5xl font-bold mb-6">
             Ready to try <span className="text-emerald-400">CodeX</span>?
           </h2>
           <p className="text-xl text-gray-300 mb-8">
             Join our beta program and help shape the future of coding tools.
           </p>
-          
+
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8">
             <Button className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-6 text-lg rounded-md w-full sm:w-auto flex items-center justify-center">
               <Download size={20} className="mr-2" />
@@ -225,7 +230,7 @@ function CTASection(){
               Join Waitlist
             </Button>
           </div>
-          
+
           <p className="text-gray-400 text-sm">Free during beta • We welcome your feedback</p>
         </div>
       </div>
@@ -233,7 +238,7 @@ function CTASection(){
   )
 }
 
-function Footer(){
+function Footer() {
   return (
     <footer className="py-12 border-t border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -244,7 +249,7 @@ function Footer(){
             </h2>
             <p className="text-gray-400 mt-2">© 2025 CodeX. All rights reserved.</p>
           </div>
-          
+
           <div className="flex flex-wrap justify-center md:justify-end gap-6 md:gap-8">
             <a href="#" className="text-gray-400 hover:text-white transition-colors">About</a>
             <a href="#" className="text-gray-400 hover:text-white transition-colors">Features</a>

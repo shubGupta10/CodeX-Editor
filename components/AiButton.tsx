@@ -1,6 +1,6 @@
 import { useAIStore } from "@/app/store/useAIStore";
 import React, { useState, useRef, useEffect } from "react";
-import { X, Copy, Check, MessageSquareCode, AlertCircle } from "lucide-react";
+import { X, Copy, Check, MessageSquareCode, AlertCircle, ArrowLeft, Eye } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { coldarkDark } from "react-syntax-highlighter/dist/esm/styles/prism";
@@ -18,11 +18,14 @@ function AiButton() {
   const [isLoading, setIsLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [showOutputPanel, setShowOutputPanel] = useState(false);
+  const [hasResponse, setHasResponse] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isRateLimited, setIsRateLimited] = useState(false);
   const [isDailyLimitExceeded, setIsDailyLimitExceeded] = useState(false);
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
   const panelRef = useRef<HTMLDivElement>(null);
+  const outputPanelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
@@ -41,14 +44,15 @@ function AiButton() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (panelRef.current && !panelRef.current.contains(event.target as Node) && 
-          buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
+          buttonRef.current && !buttonRef.current.contains(event.target as Node) &&
+          !showOutputPanel) {
         setIsOpen(false);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [showOutputPanel]);
 
   const handleAISuggestion = async () => {
     if (!userPrompt.trim()) return;
@@ -58,6 +62,7 @@ function AiButton() {
     setError(null);
     setIsRateLimited(false);
     setIsDailyLimitExceeded(false);
+    setShowOutputPanel(true);
 
     try {
       // Check if code is available from the store
@@ -125,6 +130,9 @@ function AiButton() {
         fullResponse += finalChunk;
         setAiResponse(fullResponse);
       }
+      
+      // Set flag indicating we have a response to view
+      setHasResponse(true);
     } catch (error: any) {
       console.error("AI Assistant Error:", error);
       setError(error.message || "Something went wrong with the AI response.");
@@ -141,6 +149,14 @@ function AiButton() {
     setTimeout(() => {
       setCopiedStates(prev => ({ ...prev, [index]: false }));
     }, 2000);
+  };
+
+  const closeOutputPanel = () => {
+    setShowOutputPanel(false);
+  };
+  
+  const openOutputPanel = () => {
+    setShowOutputPanel(true);
   };
 
   // Fix for the "p is descendant" issue - this function checks if a node is a block element
@@ -175,35 +191,33 @@ function AiButton() {
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center px-2 py-1 rounded text-sm bg-blue-500 hover:bg-blue-600 text-white transition"
+        className="flex items-center px-2 py-1 rounded text-sm bg-emerald-500 hover:bg-emerald-600 text-white transition"
         aria-label="AI Code Assistant"
       >
         <MessageSquareCode size={16} className="mr-1" />
         <span>AI</span>
       </button>
 
-      {/* AI Assistant Panel */}
-      {isOpen && (
+      {/* AI Assistant Input Panel */}
+      {isOpen && !showOutputPanel && (
         <div 
           ref={panelRef}
-          className="fixed shadow-lg rounded-lg"
+          className="fixed shadow-lg rounded-lg bg-gray-900 border border-gray-800"
           style={{
             top: `${buttonPosition.y + 40}px`,
             right: '20px',
             width: '380px',
             maxWidth: '90vw',
             zIndex: 40,
-            backgroundColor: 'white',
-            border: '1px solid #e2e8f0'
           }}
         >
           <div className="p-3">
             {/* Header */}
-            <div className="flex justify-between items-center border-b pb-2 mb-2">
-              <h3 className="text-md font-medium text-gray-800">AI Code Assistant</h3>
+            <div className="flex justify-between items-center border-b border-gray-800 pb-2 mb-2">
+              <h3 className="text-md font-medium text-gray-200">AI Code Assistant</h3>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-400 hover:text-gray-200"
                 aria-label="Close"
               >
                 <X size={18} />
@@ -212,9 +226,9 @@ function AiButton() {
 
             {/* Rate Limit Alert */}
             {isRateLimited && (
-              <div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded flex items-start">
-                <AlertCircle size={16} className="text-yellow-500 mt-0.5 mr-2 flex-shrink-0" />
-                <div className="text-sm text-yellow-700">
+              <div className="mb-3 p-2 bg-yellow-900 border border-yellow-800 rounded flex items-start">
+                <AlertCircle size={16} className="text-yellow-400 mt-0.5 mr-2 flex-shrink-0" />
+                <div className="text-sm text-yellow-300">
                   <p className="font-medium">Rate limit exceeded</p>
                   <p>You've reached your hourly limit. Please try again after 1 hour.</p>
                 </div>
@@ -223,9 +237,9 @@ function AiButton() {
 
             {/* Daily Limit Alert */}
             {isDailyLimitExceeded && (
-              <div className="mb-3 p-2 bg-orange-50 border border-orange-200 rounded flex items-start">
-                <AlertCircle size={16} className="text-orange-500 mt-0.5 mr-2 flex-shrink-0" />
-                <div className="text-sm text-orange-700">
+              <div className="mb-3 p-2 bg-orange-900 border border-orange-800 rounded flex items-start">
+                <AlertCircle size={16} className="text-orange-400 mt-0.5 mr-2 flex-shrink-0" />
+                <div className="text-sm text-orange-300">
                   <p className="font-medium">Daily limit exceeded</p>
                   <p>You've reached your daily limit of 30 requests. Please try again tomorrow.</p>
                 </div>
@@ -238,124 +252,213 @@ function AiButton() {
                 value={userPrompt}
                 onChange={(e) => setUserPrompt(e.target.value)}
                 placeholder="Enter your request about the code..."
-                className="w-full p-2 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-800 resize-none"
+                className="w-full p-2 text-sm border border-gray-700 rounded focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-gray-800 text-gray-200 resize-none"
                 rows={3}
                 disabled={isRateLimited || isDailyLimitExceeded}
               />
-              <button
-                onClick={handleAISuggestion}
-                disabled={isLoading || !userPrompt.trim() || isRateLimited || isDailyLimitExceeded}
-                className={`w-full p-2 text-sm rounded transition ${
-                  isLoading || !userPrompt.trim() || isRateLimited || isDailyLimitExceeded
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                    : 'bg-blue-500 text-white hover:bg-blue-600'
-                }`}
-              >
-                {isLoading ? "Generating..." : 
-                 isRateLimited ? "Rate Limited" : 
-                 isDailyLimitExceeded ? "Daily Limit Exceeded" : 
-                 "Ask AI"}
-              </button>
-            </div>
-
-            {/* AI Response Output */}
-            <div className={`border rounded ${aiResponse || error ? 'p-3' : 'p-0'} bg-gray-50 overflow-hidden max-h-80 overflow-y-auto`}>
-              {error && !isRateLimited && !isDailyLimitExceeded ? (
-                <p className="text-sm text-red-500">{error}</p>
-              ) : aiResponse ? (
-                <div className="text-sm text-gray-800 markdown-content">
-                  <ReactMarkdown
-                    components={{
-                      code({ node, inline, className, children, ...props }: CodeProps) {
-                        const match = /language-(\w+)/.exec(className || '');
-                        const codeString = String(children).replace(/\n$/, '');
-                        
-                        // For inline code, just return a simple code tag without divs
-                        if (inline) {
-                          return (
-                            <code className="bg-gray-200 px-1 py-0.5 rounded text-gray-800" {...props}>
-                              {children}
-                            </code>
-                          );
-                        }
-                        
-                        // For code blocks (not inline)
-                        const language = match ? match[1] : 'text';
-                        const codeIndex = `block-${Object.keys(copiedStates).length}`;
-                        
-                        return (
-                          <div className="relative rounded overflow-hidden my-2">
-                            <div className="flex justify-between items-center py-1 px-2 bg-gray-700 text-gray-200 text-xs">
-                              <span>{language}</span>
-                              <button
-                                onClick={() => handleCopyCode(codeString, codeIndex)}
-                                className="text-gray-300 hover:text-white p-1 rounded"
-                                aria-label="Copy code"
-                              >
-                                {copiedStates[codeIndex] ? (
-                                  <Check size={14} />
-                                ) : (
-                                  <Copy size={14} />
-                                )}
-                              </button>
-                            </div>
-                            <SyntaxHighlighter
-                              style={coldarkDark}
-                              language={language}
-                              customStyle={{
-                                margin: 0,
-                                borderRadius: '0 0 4px 4px',
-                                fontSize: '0.85rem'
-                              }}
-                            >
-                              {codeString}
-                            </SyntaxHighlighter>
-                          </div>
-                        );
-                      },
-                      // Fixed p component to properly handle block elements
-                      p({ children }) {
-                        // If children contain block elements, render as fragment
-                        return containsBlockElements(children) ? 
-                          <>{children}</> : 
-                          <p className="my-2">{children}</p>;
-                      },
-                      ul({ children }) {
-                        return <ul className="list-disc pl-5 my-2">{children}</ul>;
-                      },
-                      ol({ children }) {
-                        return <ol className="list-decimal pl-5 my-2">{children}</ol>;
-                      },
-                      li({ children }) {
-                        return containsBlockElements(children) ? 
-                          <li className="mb-1"><>{children}</></li> : 
-                          <li className="mb-1">{children}</li>;
-                      },
-                      h1({ children }) {
-                        return <h1 className="text-xl font-bold my-3">{children}</h1>;
-                      },
-                      h2({ children }) {
-                        return <h2 className="text-lg font-bold my-2">{children}</h2>;
-                      },
-                      h3({ children }) {
-                        return <h3 className="text-md font-bold my-2">{children}</h3>;
-                      },
-                      pre({ children }) {
-                        return <>{children}</>; 
-                      }
-                    }}
+              
+              <div className="flex space-x-2 mt-2">
+                <button
+                  onClick={handleAISuggestion}
+                  disabled={isLoading || !userPrompt.trim() || isRateLimited || isDailyLimitExceeded}
+                  className={`flex-1 p-2 text-sm rounded transition ${
+                    isLoading || !userPrompt.trim() || isRateLimited || isDailyLimitExceeded
+                      ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
+                      : 'bg-emerald-500 text-white hover:bg-emerald-600'
+                  }`}
+                >
+                  {isLoading ? "Generating..." : 
+                  isRateLimited ? "Rate Limited" : 
+                  isDailyLimitExceeded ? "Daily Limit Exceeded" : 
+                  "Ask AI"}
+                </button>
+                
+                {/* View Previous Response Button */}
+                {hasResponse && (
+                  <button
+                    onClick={openOutputPanel}
+                    className="p-2 rounded bg-gray-800 hover:bg-gray-700 text-emerald-400 border border-emerald-700 transition flex items-center"
+                    title="View Previous Response"
                   >
-                    {aiResponse}
-                  </ReactMarkdown>
-                </div>
-              ) : (
-                <p className="text-xs text-gray-500 text-center py-3">
-                  {isRateLimited 
-                    ? "Rate limit exceeded. Please try again after 1 hour." 
-                    : isDailyLimitExceeded
-                    ? "Daily limit of 30 requests exceeded. Please try again tomorrow."
-                    : "Ask a question about your code to get AI assistance"}
-                </p>
+                    <Eye size={18} />
+                  </button>
+                )}
+              </div>
+            </div>
+            
+            {/* Previous Response Indicator */}
+            {hasResponse && (
+              <div className="text-center mt-2 mb-1">
+                <button
+                  onClick={openOutputPanel}
+                  className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center justify-center w-full"
+                >
+                  <Eye size={12} className="mr-1" />
+                  <span>View previous AI response</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* AI Output Panel (Separate full-screen panel) */}
+      {showOutputPanel && (
+        <div 
+          ref={outputPanelRef}
+          className="fixed inset-0 bg-gray-900 bg-opacity-95 flex items-center justify-center z-50"
+        >
+          <div className="w-full max-w-4xl h-3/4 bg-gray-900 border border-gray-800 rounded-lg shadow-2xl flex flex-col">
+            {/* Header */}
+            <div className="flex justify-between items-center p-4 border-b border-gray-800">
+              <div className="flex items-center">
+                <button
+                  onClick={closeOutputPanel}
+                  className="p-2 mr-2 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-300"
+                  aria-label="Back"
+                >
+                  <ArrowLeft size={18} />
+                </button>
+                <h2 className="text-lg font-semibold text-white">AI Response</h2>
+              </div>
+              <div className="text-sm text-gray-400">
+                <span className="bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-full text-xs">
+                  {isLoading ? "Generating..." : "Response"}
+                </span>
+              </div>
+            </div>
+            
+            {/* Content area */}
+            <div className="flex-1 p-6 overflow-y-auto">
+              <div className="p-4 rounded-lg bg-gray-800 border border-gray-700 shadow-inner">
+                {error && !isRateLimited && !isDailyLimitExceeded ? (
+                  <div className="p-4 rounded-lg bg-red-900/30 border border-red-800">
+                    <p className="text-red-400">{error}</p>
+                  </div>
+                ) : isLoading ? (
+                  <div className="flex items-center justify-center h-32">
+                    <div className="animate-pulse text-emerald-400">Generating response...</div>
+                  </div>
+                ) : aiResponse ? (
+                  <div className="text-gray-200 markdown-content">
+                    <ReactMarkdown
+                      components={{
+                        code({ node, inline, className, children, ...props }: CodeProps) {
+                          const match = /language-(\w+)/.exec(className || '');
+                          const codeString = String(children).replace(/\n$/, '');
+                          
+                          // For inline code, just return a simple code tag without divs
+                          if (inline) {
+                            return (
+                              <code className="bg-gray-700 px-1 py-0.5 rounded text-emerald-300" {...props}>
+                                {children}
+                              </code>
+                            );
+                          }
+                          
+                          // For code blocks (not inline)
+                          const language = match ? match[1] : 'text';
+                          const codeIndex = `block-${Object.keys(copiedStates).length}`;
+                          
+                          return (
+                            <div className="relative rounded-lg overflow-hidden my-4 border border-gray-700">
+                              <div className="flex justify-between items-center py-2 px-3 bg-gray-700 text-gray-200 text-xs">
+                                <span className="font-mono">{language}</span>
+                                <button
+                                  onClick={() => handleCopyCode(codeString, codeIndex)}
+                                  className="text-gray-300 hover:text-emerald-400 p-1 rounded"
+                                  aria-label="Copy code"
+                                >
+                                  {copiedStates[codeIndex] ? (
+                                    <Check size={16} className="text-emerald-400" />
+                                  ) : (
+                                    <Copy size={16} />
+                                  )}
+                                </button>
+                              </div>
+                              <SyntaxHighlighter
+                                style={coldarkDark}
+                                language={language}
+                                customStyle={{
+                                  margin: 0,
+                                  borderRadius: '0 0 6px 6px',
+                                  fontSize: '0.9rem',
+                                  backgroundColor: '#1a1a1a'
+                                }}
+                              >
+                                {codeString}
+                              </SyntaxHighlighter>
+                            </div>
+                          );
+                        },
+                        // Fixed p component to properly handle block elements
+                        p({ children }) {
+                          // If children contain block elements, render as fragment
+                          return containsBlockElements(children) ? 
+                            <>{children}</> : 
+                            <p className="my-3 leading-relaxed">{children}</p>;
+                        },
+                        ul({ children }) {
+                          return <ul className="list-disc pl-5 my-4 space-y-1">{children}</ul>;
+                        },
+                        ol({ children }) {
+                          return <ol className="list-decimal pl-5 my-4 space-y-1">{children}</ol>;
+                        },
+                        li({ children }) {
+                          return containsBlockElements(children) ? 
+                            <li className="mb-2"><>{children}</></li> : 
+                            <li className="mb-2">{children}</li>;
+                        },
+                        h1({ children }) {
+                          return <h1 className="text-xl font-bold my-4 text-emerald-400">{children}</h1>;
+                        },
+                        h2({ children }) {
+                          return <h2 className="text-lg font-bold my-3 text-emerald-400">{children}</h2>;
+                        },
+                        h3({ children }) {
+                          return <h3 className="text-md font-bold my-3 text-emerald-300">{children}</h3>;
+                        },
+                        pre({ children }) {
+                          return <>{children}</>; 
+                        }
+                      }}
+                    >
+                      {aiResponse}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-32">
+                    <p className="text-gray-500">No response yet. Please wait while the AI processes your request.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Footer */}
+            <div className="p-4 border-t border-gray-800 flex justify-between">
+              <button
+                onClick={closeOutputPanel}
+                className="px-4 py-2 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 transition"
+              >
+                Back
+              </button>
+              {aiResponse && (
+                <button
+                  onClick={() => handleCopyCode(aiResponse, 'full-response')}
+                  className="px-4 py-2 rounded bg-emerald-500 hover:bg-emerald-600 text-white flex items-center transition"
+                >
+                  {copiedStates['full-response'] ? (
+                    <>
+                      <Check size={16} className="mr-1" />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={16} className="mr-1" />
+                      Copy All
+                    </>
+                  )}
+                </button>
               )}
             </div>
           </div>

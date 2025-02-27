@@ -22,37 +22,37 @@ export default function TerminalPanel({ output, status }: TerminalPanelProps) {
 
   return (
     <div className={`h-full bg-[#1e1e1e] flex flex-col ${maximized ? 'fixed inset-0 z-50' : ''}`}>
-      <div className="flex items-center gap-2 px-4 py-2 border-b border-[#2d2d2d] bg-[#252526]">
-        <Terminal className="w-4 h-4 text-gray-400" />
+      <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-800 bg-[#252525]">
+        <Terminal className="w-4 h-4 text-emerald-400" />
         <h3 className="text-sm font-medium text-gray-300">TERMINAL</h3>
         {status === "success" && (
-          <CheckCircle2 className="w-4 h-4 text-green-500 ml-2" />
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 ml-2" />
         )}
         {status === "error" && (
-          <XCircle className="w-4 h-4 text-red-500 ml-2" />
+          <XCircle className="w-4 h-4 text-red-400 ml-2" />
         )}
         
         <div className="ml-auto flex items-center gap-1">
           <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-6 w-6 text-gray-400 hover:text-white hover:bg-[#3c3c3c]"
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 text-gray-400 hover:text-emerald-400 hover:bg-[#2a2a2a] transition-colors"
             onClick={copyToClipboard}
           >
             <Copy className="w-3.5 h-3.5" />
           </Button>
           <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-6 w-6 text-gray-400 hover:text-white hover:bg-[#3c3c3c]"
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 text-gray-400 hover:text-emerald-400 hover:bg-[#2a2a2a] transition-colors"
             onClick={clearOutput}
           >
             <Trash className="w-3.5 h-3.5" />
           </Button>
           <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-6 w-6 text-gray-400 hover:text-white hover:bg-[#3c3c3c]"
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 text-gray-400 hover:text-emerald-400 hover:bg-[#2a2a2a] transition-colors"
             onClick={() => setMaximized(!maximized)}
           >
             <Maximize2 className="w-3.5 h-3.5" />
@@ -63,10 +63,10 @@ export default function TerminalPanel({ output, status }: TerminalPanelProps) {
       <ScrollArea className="flex-1 p-3 font-mono text-sm">
         {output ? (
           <pre className={`whitespace-pre-wrap ${
-            status === "error" 
-              ? "text-red-400" 
-              : status === "success" 
-                ? "text-green-400" 
+            status === "error"
+              ? "text-red-400"
+              : status === "success"
+                ? "text-emerald-400"
                 : "text-gray-300"
           }`}>
             {output}

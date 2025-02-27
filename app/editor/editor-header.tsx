@@ -1,6 +1,6 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Code2, Play, Menu, Save, Upload } from "lucide-react";
+import { Code2, Play, Menu, Save } from "lucide-react";
 import { languageOptions } from "../utils/constants";
 import { SupportedLanguage } from "../utils/editor-config";
 import AiButton from "@/components/AiButton";
@@ -16,10 +16,10 @@ interface EditorHeaderProps {
   fileName?: string;
 }
 
-export default function EditorHeader({ 
-  language, 
-  onLanguageChange, 
-  onRun, 
+export default function EditorHeader({
+  language,
+  onLanguageChange,
+  onRun,
   loading,
   onToggleSidebar,
   onSave,
@@ -27,51 +27,60 @@ export default function EditorHeader({
   fileName
 }: EditorHeaderProps) {
   return (
-    <header className="h-12 bg-[#252526] border-b border-[#1e1e1e] flex items-center justify-between px-2">
+    <header className="h-12 bg-[#1e1e1e] border-b border-gray-800 flex items-center justify-between px-3 shadow-sm">
       <div className="flex items-center gap-2">
-        <Button 
+        <Button
           onClick={onToggleSidebar}
-          variant="ghost" 
-          size="icon" 
-          className="text-gray-400 hover:text-white hover:bg-[#3c3c3c]"
+          variant="ghost"
+          size="icon"
+          className="text-gray-400 hover:text-white hover:bg-[#252525] transition-colors"
         >
           <Menu className="w-5 h-5" />
         </Button>
         <div className="flex items-center gap-2">
-          <Code2 className="w-5 h-5 text-blue-400" />
-          <span className="font-medium text-gray-200">Code Editor</span>
+          <Code2 className="w-5 h-5 text-emerald-400" />
+          <span className="font-medium text-gray-200">CodeX</span>
           {fileName && (
             <>
               <span className="text-gray-500 mx-1">-</span>
               <span className="text-gray-300 text-sm">{fileName}</span>
-              {isDirty && <span className="text-xs text-gray-500 ml-1">*</span>}
+              {isDirty && <span className="text-emerald-400 text-xs ml-1">*</span>}
             </>
           )}
         </div>
       </div>
       
       <div className="flex items-center gap-3">
-        <AiButton/>
+        <AiButton />
+        
         <Button
           onClick={onSave}
           disabled={loading || !isDirty}
           size="sm"
           variant="ghost"
-          className="text-gray-300 hover:text-black gap-1 h-8 px-3"
+          className={`gap-1 h-8 px-3 transition-colors ${
+            isDirty 
+              ? 'text-emerald-400 hover:text-emerald-300 hover:bg-[#2a2a2a]' 
+              : 'text-gray-500'
+          }`}
         >
           <Save className="w-3.5 h-3.5" />
           Save
         </Button>
         
-        <div className="h-6 w-px bg-gray-700" />
+        <div className="h-6 w-px bg-gray-800" />
         
         <Select value={language} onValueChange={onLanguageChange}>
-          <SelectTrigger className="w-[150px] bg-[#3c3c3c] border-[#2d2d2d] h-8 text-sm">
+          <SelectTrigger className="w-[150px] bg-[#252525] border-gray-800 h-8 text-sm text-gray-200 focus:ring-emerald-500 focus:ring-opacity-30">
             <SelectValue placeholder="Select language" />
           </SelectTrigger>
-          <SelectContent className="bg-[#252526] text-gray-200 border-[#3c3c3c]">
+          <SelectContent className="bg-[#1e1e1e] text-gray-200 border-gray-800">
             {languageOptions.map((lang) => (
-              <SelectItem key={lang.value} value={lang.value}>
+              <SelectItem 
+                key={lang.value} 
+                value={lang.value}
+                className="hover:bg-[#2a2a2a] focus:bg-[#2a2a2a] focus:text-emerald-400"
+              >
                 <div className="flex items-center gap-2">
                   <span className="font-mono text-sm">{lang.icon}</span>
                   {lang.label}
@@ -85,7 +94,11 @@ export default function EditorHeader({
           onClick={onRun}
           disabled={loading}
           size="sm"
-          className="bg-[#0e639c] hover:bg-[#1177bb] text-white gap-1 h-8 px-3"
+          className={`text-white gap-1 h-8 px-3 transition-colors ${
+            loading 
+              ? 'bg-emerald-600 opacity-80 cursor-not-allowed' 
+              : 'bg-emerald-600 hover:bg-emerald-500'
+          }`}
         >
           <Play className="w-3.5 h-3.5" />
           {loading ? "Running..." : "Run Code"}

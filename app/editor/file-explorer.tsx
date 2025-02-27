@@ -31,45 +31,44 @@ function FileExplorerItem({ files, level = 0, onFileSelect, onDeleteFile, onEdit
   const [isHovered, setIsHovered] = useState(false);
   const user = useSession();
   
-  
   const isSelected = selectedFile && selectedFile.name === files.name && selectedFile.type === files.type;
 
   if (files.type === "file") {
     return (
       <div
-        className={`flex items-center gap-2 px-2 py-1.5 hover:bg-[#2a2d2e] ${isSelected ? 'bg-[#37373d]' : ''} text-gray-300 hover:text-white rounded cursor-pointer group`}
+        className={`flex items-center gap-2 px-2 py-1.5 hover:bg-[#252525] ${isSelected ? 'bg-[#2a2a2a] border-l-2 border-emerald-400' : ''} text-gray-300 hover:text-white rounded cursor-pointer group transition-colors`}
         style={{ paddingLeft: `${level * 8 + 8}px` }}
         onClick={() => onFileSelect && onFileSelect(files)}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <FileCode className="w-4 h-4 text-gray-400" />
+        <FileCode className="w-4 h-4 text-emerald-400" />
         <span className="text-sm truncate flex-grow">{files.name}</span>
         {isHovered && (
           <>
             <Button
               size="icon"
               variant="ghost"
-              className="h-6 w-6 opacity-0 group-hover:opacity-100"
+              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
               onClick={(e) => {
                 e.stopPropagation();
                 onEditFile && onEditFile(files);
               }}
               title="Edit File"
             >
-              <Edit className="w-3.5 h-3.5 hover:text-black" />
+              <Edit className="w-3.5 h-3.5 text-gray-400 hover:text-emerald-400 transition-colors" />
             </Button>
             <Button
               size="icon"
               variant="ghost"
-              className="h-6 w-6 opacity-0 group-hover:opacity-100"
+              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
               onClick={(e) => {
                 e.stopPropagation();
                 onDeleteFile && onDeleteFile(files);
               }}
               title="Delete File"
             >
-              <Trash2Icon className="w-3.5 h-3.5  hover:text-red-400" />
+              <Trash2Icon className="w-3.5 h-3.5 text-gray-400 hover:text-red-400 transition-colors" />
             </Button>
           </>
         )}
@@ -80,12 +79,12 @@ function FileExplorerItem({ files, level = 0, onFileSelect, onDeleteFile, onEdit
   return (
     <div>
       <div
-        className="flex items-center gap-1 px-2 py-1 hover:bg-[#2a2d2e] text-gray-300 hover:text-white rounded cursor-pointer group"
+        className="flex items-center gap-1 px-2 py-1 hover:bg-[#252525] text-gray-300 hover:text-white rounded cursor-pointer group transition-colors"
         style={{ paddingLeft: `${level * 8 + 4}px` }}
         onClick={() => setExpanded(!expanded)}
       >
         {expanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-        {expanded ? <FolderOpen className="w-4 h-4 text-[#dcb67a]" /> : <Folder className="w-4 h-4 text-[#dcb67a]" />}
+        {expanded ? <FolderOpen className="w-4 h-4 text-emerald-600" /> : <Folder className="w-4 h-4 text-emerald-600" />}
         <span className="text-sm font-medium">{files.name}</span>
       </div>
       {expanded && files.children?.map((child) => (
@@ -228,30 +227,30 @@ export default function FileExplorer() {
   }, [fetchAllFiles]);
 
   return (
-    <div className="h-full flex flex-col bg-[#252526]">
+    <div className="h-full flex flex-col bg-[#1e1e1e]">
       {session.status === 'authenticated' ? (
         <>
-          <div className="p-2 border-b border-[#1e1e1e] flex justify-between items-center">
+          <div className="p-2 border-b border-gray-800 flex justify-between items-center">
             <span className="text-gray-300 text-sm font-medium">EXPLORER</span>
             <div className="flex gap-1">
               <Button 
                 size="icon" 
                 variant="ghost" 
-                className="h-6 w-6" 
+                className="h-6 w-6 text-gray-400 hover:text-emerald-400 hover:bg-[#252525] transition-colors" 
                 onClick={() => setIsNewFileModalOpen(true)}
                 title="New File"
               >
-                <Plus className="w-3.5 h-3.5 hover:text-black" />
+                <Plus className="w-3.5 h-3.5" />
               </Button>
               <Button 
                 size="icon" 
                 variant="ghost" 
-                className="h-6 w-6" 
+                className="h-6 w-6 text-gray-400 hover:text-emerald-400 hover:bg-[#252525] transition-colors" 
                 onClick={fetchAllFiles} 
                 disabled={isLoading}
                 title="Refresh"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin text-gray-400 hover:text-black" : "text-gray-100 hover:text-black"}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
               </Button>
             </div>
           </div>
@@ -260,7 +259,7 @@ export default function FileExplorer() {
             <div className="relative">
               <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
               <Input
-                className="h-7 pl-8 text-sm bg-[#3c3c3c] border-[#3c3c3c] text-gray-300 placeholder:text-gray-500"
+                className="h-7 pl-8 text-sm bg-[#252525] border-gray-800 text-gray-300 placeholder:text-gray-500 focus:border-emerald-600 focus:ring-emerald-600 focus:ring-opacity-20"
                 placeholder="Search files"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -289,7 +288,7 @@ export default function FileExplorer() {
 
           {/* Create File Dialog */}
           <Dialog open={isNewFileModalOpen} onOpenChange={setIsNewFileModalOpen}>
-            <DialogContent className="bg-[#252526] text-white border-[#3c3c3c]">
+            <DialogContent className="bg-[#1e1e1e] text-white border-gray-800">
               <DialogHeader>
                 <DialogTitle>Create a New File</DialogTitle>
               </DialogHeader>
@@ -298,13 +297,13 @@ export default function FileExplorer() {
                 placeholder="Enter file name (e.g. main.js)"
                 value={fileName}
                 onChange={(e) => setFileName(e.target.value)}
-                className="bg-[#3c3c3c] border-[#2d2d2d] text-white"
+                className="bg-[#252525] border-gray-800 text-white focus:border-emerald-600 focus:ring-emerald-600 focus:ring-opacity-20"
               />
               <DialogFooter>
-                <Button variant="ghost" onClick={() => setIsNewFileModalOpen(false)}>Cancel</Button>
+                <Button variant="ghost" className="text-gray-300 hover:text-white hover:bg-[#2a2a2a]" onClick={() => setIsNewFileModalOpen(false)}>Cancel</Button>
                 <Button 
                   onClick={handleCreateFile}
-                  className="bg-[#0e639c] hover:bg-[#1177bb] text-white"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
                 >
                   Create
                 </Button>
@@ -314,7 +313,7 @@ export default function FileExplorer() {
 
           {/* Edit File Dialog */}
           <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-            <DialogContent className="bg-[#252526] text-white border-[#3c3c3c]">
+            <DialogContent className="bg-[#1e1e1e] text-white border-gray-800">
               <DialogHeader>
                 <DialogTitle>Rename File</DialogTitle>
                 <DialogDescription className="text-gray-400">
@@ -326,13 +325,13 @@ export default function FileExplorer() {
                 placeholder="Enter new file name"
                 value={fileName}
                 onChange={(e) => setFileName(e.target.value)}
-                className="bg-[#3c3c3c] border-[#2d2d2d] text-white"
+                className="bg-[#252525] border-gray-800 text-white focus:border-emerald-600 focus:ring-emerald-600 focus:ring-opacity-20"
               />
               <DialogFooter>
-                <Button variant="ghost" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
+                <Button variant="ghost" className="text-gray-300 hover:text-white hover:bg-[#2a2a2a]" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
                 <Button 
                   onClick={handleEditFile}
-                  className="bg-[#0e639c] hover:bg-[#1177bb] text-white"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
                 >
                   Rename
                 </Button>
@@ -342,7 +341,7 @@ export default function FileExplorer() {
 
           {/* Delete File Confirmation Dialog */}
           <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-            <DialogContent className="bg-[#252526] text-white border-[#3c3c3c]">
+            <DialogContent className="bg-[#1e1e1e] text-white border-gray-800">
               <DialogHeader>
                 <DialogTitle>Delete File</DialogTitle>
                 <DialogDescription className="text-gray-400">
@@ -350,11 +349,11 @@ export default function FileExplorer() {
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
-                <Button variant="ghost" onClick={() => setIsDeleteModalOpen(false)}>Cancel</Button>
+                <Button variant="ghost" className="text-gray-300 hover:text-white hover:bg-[#2a2a2a]" onClick={() => setIsDeleteModalOpen(false)}>Cancel</Button>
                 <Button 
                   onClick={handleDeleteFile}
                   variant="destructive"
-                  className="bg-red-600 hover:bg-red-700 text-white"
+                  className="bg-red-600 hover:bg-red-700 text-white transition-colors"
                 >
                   Delete
                 </Button>
@@ -364,7 +363,7 @@ export default function FileExplorer() {
 
           {/* File Limit Reached Dialog */}
           <Dialog open={isFileLimitModalOpen} onOpenChange={setIsFileLimitModalOpen}>
-            <DialogContent className="bg-[#252526] text-white border-[#3c3c3c]">
+            <DialogContent className="bg-[#1e1e1e] text-white border-gray-800">
               <DialogHeader>
                 <DialogTitle>File Limit Reached</DialogTitle>
                 <DialogDescription className="text-gray-400">
@@ -374,7 +373,7 @@ export default function FileExplorer() {
               <DialogFooter>
                 <Button 
                   onClick={() => setIsFileLimitModalOpen(false)}
-                  className="bg-[#0e639c] hover:bg-[#1177bb] text-white"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
                 >
                   OK
                 </Button>
@@ -385,7 +384,7 @@ export default function FileExplorer() {
       ) : (
         <div className="flex flex-col items-center justify-center h-full p-4 text-gray-300">
           <h1 className="text-xl font-semibold mb-4">Sign in to save files</h1>
-          <Button className="bg-[#0e639c] hover:bg-[#1177bb] text-white">Login Now</Button>
+          <Button className="bg-emerald-600 hover:bg-emerald-500 text-white transition-colors">Login Now</Button>
         </div>
       )}
     </div>

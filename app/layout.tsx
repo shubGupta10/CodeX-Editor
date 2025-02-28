@@ -4,6 +4,7 @@ import "./globals.css";
 import SessionProviderWrapper from "@/components/SessionProviderWrapper";
 import Navbar from "@/components/Navbar";
 import {Toaster} from 'react-hot-toast'
+import SocketProvider from "@/components/SocketProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,7 +37,9 @@ export default function RootLayout({
           position="top-center"
           reverseOrder={false}
         />
+        <SocketProvider>
         {children}
+        </SocketProvider>
       </body>
     </html>
     </SessionProviderWrapper>

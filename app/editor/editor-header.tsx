@@ -4,6 +4,7 @@ import { Code2, Play, Menu, Save } from "lucide-react";
 import { languageOptions } from "../utils/constants";
 import { SupportedLanguage } from "../utils/editor-config";
 import AiButton from "@/components/AiButton";
+import RoomPanel from "@/components/RoomPanel";
 
 interface EditorHeaderProps {
   language: SupportedLanguage;
@@ -51,6 +52,7 @@ export default function EditorHeader({
       </div>
       
       <div className="flex items-center gap-3">
+        <RoomPanel/>
         <AiButton />
         
         <Button

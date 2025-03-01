@@ -5,12 +5,14 @@ import { authOptions } from "@/lib/options";
 import { aiRateLimit } from "@/lib/ratelimit";
 import redis from "@/redis/redis"; // Ensure it's configured for Upstash
 import UserLimitModel from "@/models/User_limit";
+import { ConnectoDatabase } from "@/lib/db";
 
 const MAX_DAILY_REQUESTS = 30;
 const ONE_DAY_IN_SECONDS = 86400;
 
 export async function POST(req: NextRequest) {
   try {
+    await ConnectoDatabase()
     const { prompt, code } = await req.json();
     const session = await getServerSession(authOptions);
 

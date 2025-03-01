@@ -1,8 +1,10 @@
+import { ConnectoDatabase } from "@/lib/db";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { NextResponse, NextRequest } from "next/server";
 
 export async function POST(req: NextRequest) {
     try {
+        await ConnectoDatabase();
         const { codeSnippet } = await req.json();
 
         if (!codeSnippet || typeof codeSnippet !== "string") {
@@ -15,24 +17,45 @@ export async function POST(req: NextRequest) {
         const llm = new ChatGoogleGenerativeAI({
             modelName: "gemini-1.5-flash",
             apiKey: process.env.GOOGLE_GEMINI_API_KEY!,
-            maxOutputTokens: 1024,
+            maxOutputTokens: 512,
+            temperature: 0.3, 
         });
 
-        const prompt = `You are a smart code completion AI. Suggest the next few words based on this partial code:\n\n${codeSnippet}\n\nSuggestion:`;
+        const prompt = `
+        You are a **code review AI**. 
+        Analyze the following code snippet and provide a **concise** response.
+
+        **Code:**
+        \`\`\`ts
+        ${codeSnippet}
+        \`\`\`
+
+        ### **Response Format (Keep it short & useful)**
+        ✅ **Errors Found (if any)**
+        ✅ **Optimizations**
+        ✅ **Best Practices**
+        ✅ **Fixed Code Snippet (only show required changes)**
+        `;
 
         const stream = await llm.stream(prompt);
 
-        const transformStream = new TransformStream({
-            async transform(chunk, controller) {
-                if (chunk.content && typeof chunk.content === "string") {
-                    controller.enqueue(new TextEncoder().encode(chunk.content));
+        const readableStream = new ReadableStream({
+            async start(controller) {
+                try {
+                    for await (const chunk of stream) {
+                        if (chunk.content && typeof chunk.content === "string") {
+                            controller.enqueue(new TextEncoder().encode(chunk.content));
+                        }
+                    }
+                    controller.close();
+                } catch (error) {
+                    console.error("Streaming error:", error);
+                    controller.error(error);
                 }
             },
         });
 
-        stream.pipeThrough(transformStream);
-
-        return new Response(transformStream.readable, {
+        return new Response(readableStream, {
             headers: {
                 "Content-Type": "text/plain; charset=utf-8",
                 "Cache-Control": "no-cache",

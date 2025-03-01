@@ -5,6 +5,7 @@ import { languageOptions } from "../utils/constants";
 import { SupportedLanguage } from "../utils/editor-config";
 import AiButton from "@/components/AiButton";
 import RoomPanel from "@/components/RoomPanel";
+import ConversionCodePanel from "@/components/codeConversion/conversion";
 
 interface EditorHeaderProps {
   language: SupportedLanguage;
@@ -52,7 +53,8 @@ export default function EditorHeader({
       </div>
       
       <div className="flex items-center gap-3">
-        <RoomPanel/>
+        {/* <RoomPanel/> */}
+        <ConversionCodePanel/>
         <AiButton />
         
         <Button

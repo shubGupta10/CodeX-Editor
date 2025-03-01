@@ -31,7 +31,7 @@ export default function EditorPage() {
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [activeTab, setActiveTab] = useState("files");
   const [collapsedSidebar, setCollapsedSidebar] = useState(false);
-  const { code, setCode } = useAIStore();
+  const { code, setCode, setCodeForConversion } = useAIStore();
   const editorRef = useRef<any>(null);
 
   useEffect(() => {
@@ -43,6 +43,7 @@ export default function EditorPage() {
   const handleEditorChange = (value: string | undefined) => {
     const updatedValue = value || "";
     setFileContent(updatedValue);
+    setCodeForConversion(updatedValue);
     setCode(updatedValue);
   };
 

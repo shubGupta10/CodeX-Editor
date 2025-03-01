@@ -4,9 +4,12 @@ interface UserLimit {
     userId: string;
     fileCount: number;
     maxFiles: number;
-    aiRequestCount: number;  // New field for AI request tracking
-    aiMaxRequests: number;   // Maximum AI requests allowed
-    aiResetAt: Date;         // Timestamp for AI rate limit reset
+    aiRequestCount: number; 
+    aiMaxRequests: number;   
+    conversionCount: number;  
+    conversionLimit: number; 
+    conversionResetAt: Date;  
+    aiResetAt: Date;        
     createdAt: Date;
     updatedAt: Date;
 }
@@ -28,15 +31,27 @@ const userLimitSchema = new Schema<UserLimit>(
     },
     aiRequestCount: {
       type: Number,
-      default: 0, // Tracks AI usage
+      default: 0, 
     },
     aiMaxRequests: {
       type: Number,
-      default: 10, // Example: Allow 10 AI requests per day
+      default: 10, 
     },
     aiResetAt: {
       type: Date,
-      default: () => new Date(Date.now() + 24 * 60 * 60 * 1000), // Resets every 24h
+      default: () => new Date(Date.now() + 24 * 60 * 60 * 1000), 
+    },
+    conversionCount: {
+      type: Number,
+      default: 0,
+    },
+    conversionLimit: {
+      type: Number,
+      default: 5, 
+    },
+    conversionResetAt: {
+      type: Date,
+      default: () => new Date(Date.now() + 24 * 60 * 60 * 1000),
     },
   },
   { timestamps: true }

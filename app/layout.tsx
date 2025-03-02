@@ -4,6 +4,7 @@ import "./globals.css";
 import SessionProviderWrapper from "@/components/SessionProviderWrapper";
 import Navbar from "@/components/Navbar";
 import {Toaster} from 'react-hot-toast'
+import { Footer } from "@/components/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,6 +38,7 @@ export default function RootLayout({
           reverseOrder={false}
         />
         {children}
+        <Footer/>
       </body>
     </html>
     </SessionProviderWrapper>

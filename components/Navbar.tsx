@@ -63,6 +63,12 @@ function Navbar() {
               >
                 Editor
               </Link>
+              <Link
+                href="/profile"
+                className="px-3 py-2 text-gray-300 hover:text-white transition-colors"
+              >
+                Profile
+              </Link>
             </div>
           </div>
 

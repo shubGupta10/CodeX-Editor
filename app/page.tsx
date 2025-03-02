@@ -2,9 +2,11 @@
 
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
-import React from 'react'
-import { ArrowRight, Code, Lock, Terminal, Zap, BrainCircuit, Palette, Sparkles, GitBranch, Laptop, Check, Star, Download, Users } from 'lucide-react'
+import React, { useRef, useEffect, useState } from 'react'
+import { ArrowRight, Code, Lock, Terminal, Zap, BrainCircuit, Palette, Sparkles, GitBranch, Laptop, Check, Star, Download, Users, Play, Pause, Code2Icon, MessageSquareCode, FileCode, SendHorizontal, CheckCircle2, Languages, Code2, RotateCcw, Lightbulb } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { Footer } from '@/components/Footer'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 function Home() {
   const router = useRouter()
@@ -17,117 +19,180 @@ function Home() {
         <HeroSection />
         <AboutSection />
         <FeatureSection />
-        <CTASection />
-        <Footer />
+        <AIFeaturesSection />
       </main>
     </div>
   )
 }
 
+function VideoPlayer({ src, fallbackImage, className }: { src: string; fallbackImage: string; className: string }) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [isPlaying, setIsPlaying] = React.useState(false);
+  const [isHovering, setIsHovering] = React.useState(false);
+
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        videoRef.current.play();
+        setIsPlaying(true);
+      } else {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleEnded = () => {
+      setIsPlaying(false);
+    };
+
+    video.addEventListener('ended', handleEnded);
+    return () => {
+      video.removeEventListener('ended', handleEnded);
+    };
+  }, []);
+
+  return (
+    <div
+      className={`relative ${className}`}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+    >
+      <video
+        ref={videoRef}
+        className="w-full h-full object-cover rounded-lg"
+        poster={fallbackImage}
+        muted
+        playsInline
+      >
+        <source src={src} type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+
+      {(isHovering || !isPlaying) && (
+        <button
+          onClick={togglePlay}
+          className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg transition-opacity hover:bg-black/40"
+          aria-label={isPlaying ? "Pause video" : "Play video"}
+        >
+          <div className="p-3 bg-emerald-500 rounded-full text-white">
+            {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+          </div>
+        </button>
+      )}
+    </div>
+  );
+}
+
 function HeroSection() {
   const router = useRouter();
+
   return (
-    <div className="py-16 md:py-24 flex flex-col md:flex-row items-center">
-      <div className="flex-1 text-left md:pr-12">
+    <div className="py-12 md:py-20 flex flex-col md:flex-row items-center">
+      <div className="flex-1 text-left md:pr-12 mb-8 md:mb-0">
         <div className="inline-flex items-center px-3 py-1 mb-6 rounded-full bg-emerald-900/30 border border-emerald-500/20 text-emerald-400 text-sm">
-          <Star size={14} className="mr-1" /> New code assistance features
+          <Star size={14} className="mr-1" /> Feature-Rich Code Playground
         </div>
 
-        <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 leading-tight">
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 leading-tight">
           <span className="relative">
             Modern Code <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">Editor</span>
           </span>
         </h1>
 
-        <p className="text-xl text-gray-300 mb-8 max-w-xl">
+        <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-xl">
           CodeX is a code editor with smart suggestions to help you write code more efficiently.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <Button onClick={() => router.push("/auth/register")} className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-6 text-lg rounded-md flex items-center group transition-all">
+          <Button onClick={() => router.push("/auth/register")} className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-5 text-lg rounded-md flex items-center group transition-all">
             Try CodeX
             <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={20} />
           </Button>
 
-          <Button variant="outline" className="border-gray-700 hover:bg-gray-300 text-black px-8 py-6 text-lg rounded-md">
+          <Button variant="outline" className="border-gray-700 hover:bg-gray-800 hover:border-gray-600 text-black px-6 py-5 text-lg rounded-md">
             View Demo
           </Button>
         </div>
 
-        <div className="flex items-center text-gray-400 text-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center text-gray-400 text-sm gap-y-2">
           <span className="flex items-center">
-            <Check size={16} className="text-emerald-400 mr-1" /> AI-powered assistant
+            <Check size={16} className="text-emerald-400 mr-1 flex-shrink-0" /> AI-powered assistant
           </span>
-          <span className="mx-2">•</span>
+          <span className="hidden sm:block mx-2">•</span>
           <span className="flex items-center">
-            <Check size={16} className="text-emerald-400 mr-1" /> Secure code execution environment
+            <Check size={16} className="text-emerald-400 mr-1 flex-shrink-0" /> Secure code execution environment
           </span>
         </div>
       </div>
 
-      <div className="flex-1 mt-12 md:mt-0 relative">
-        <div className="absolute -inset-4 bg-emerald-500/20 rounded-2xl blur-xl"></div>
+      <div className="flex-1 w-full max-w-2xl mx-auto md:max-w-3xl relative">
+        <div className="absolute -inset-6 bg-emerald-500/20 rounded-2xl blur-xl"></div>
         <div className="relative overflow-hidden rounded-xl border border-gray-800 shadow-2xl">
-          <div className="absolute top-0 left-0 right-0 h-8 bg-[#252525] flex items-center px-4">
+          <div className="absolute top-0 left-0 right-0 h-10 bg-[#252525] flex items-center px-4 z-10">
             <div className="flex space-x-2">
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+              <div className="w-4 h-4 rounded-full bg-red-500"></div>
+              <div className="w-4 h-4 rounded-full bg-yellow-500"></div>
+              <div className="w-4 h-4 rounded-full bg-green-500"></div>
             </div>
           </div>
-          <div className="pt-8">
-            <Image
+          <div className="pt-10">
+            <img
               src="/homeimg.png"
-              alt="CodeX Editor Interface"
-              width={600}
-              height={400}
-              className="w-full"
+              alt="Code Converter Demo"
+              className="w-full h-auto max-h-[600px] object-contain"
             />
           </div>
         </div>
       </div>
+
     </div>
   )
 }
 
 function AboutSection() {
   return (
-    <div className="py-20 md:py-28 flex flex-col items-center">
-      <div className="text-center mb-16">
+    <div id="about" className="py-16 md:py-24 flex flex-col items-center scroll-mt-16">
+      <div className="text-center mb-12 md:mb-16">
         <div className="inline-flex items-center px-3 py-1 mb-4 rounded-full bg-emerald-900/30 border border-emerald-500/20 text-emerald-400 text-sm">
           ABOUT CODEX
         </div>
-        <h2 className="text-3xl md:text-5xl font-bold mb-6">
+        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
           A Better Way to <span className="text-emerald-400">Code</span>
         </h2>
-        <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+        <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto">
           I'm building tools to make coding more intuitive and efficient
         </p>
       </div>
 
-      <div className="relative w-full max-w-5xl h-96 md:h-[600px] mx-auto">
-        <div className="absolute -inset-8 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 blur-2xl rounded-2xl z-0"></div>
-        <div className="absolute -inset-0.5 rounded-xl bg-gradient-to-r from-emerald-500/30 to-transparent z-10"></div>
-        <Image
-          src="/homeimg.png"
-          alt="CodeX Editor Interface"
-          layout="fill"
-          objectFit="contain"
-          className="relative z-20 rounded-xl"
-        />
+      <div className="relative w-full max-w-7xl ">
+        <div className=" relative w-full">
+          <div className="absolute -inset-8 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 blur-2xl rounded-2xl z-0"></div>
+          <div className="absolute rounded-xl bg-gradient-to-r from-emerald-500/30 to-transparent z-10"></div>
 
-        <div className="absolute -bottom-6 -right-6 bg-[#252525] border border-gray-800 p-4 rounded-lg shadow-xl z-30 max-w-xs">
-          <div className="flex items-start">
-            <div className="text-emerald-400 bg-emerald-400/10 p-2 rounded-lg mr-3">
-              <Zap size={20} />
-            </div>
-            <div>
-              <h4 className="font-semibold mb-1">Code suggestions</h4>
-              <p className="text-gray-400 text-sm">Get helpful completion suggestions as you type</p>
+          <VideoPlayer
+            src="/editorMain.mp4"
+            fallbackImage="/homeimg.png"
+            className="relative z-20 rounded-xl w-full h-full object-contain"
+          />
+          <div className="absolute -bottom-6 md:-bottom-8 right-4 md:-right-6 bg-[#252525] border border-gray-800 p-4 rounded-lg shadow-xl z-30 max-w-xs transform transition-transform hover:scale-105">
+            <div className="flex items-start">
+              <div className="text-emerald-400 bg-emerald-400/10 p-2 rounded-lg mr-3 flex-shrink-0">
+                <Zap size={20} />
+              </div>
+              <div>
+                <h4 className="font-semibold mb-1">Code suggestions</h4>
+                <p className="text-gray-400 text-sm">Get helpful completion suggestions as you type</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
     </div>
   )
 }
@@ -145,6 +210,11 @@ function FeatureSection() {
       icon: <Palette size={24} />,
     },
     {
+      title: "Code Converter",
+      description: "Convert your code into any language using AI withing some seconds.",
+      icon: <Code2Icon size={24} />,
+    },
+    {
       title: "Smart Code Assistance",
       description: "AI-powered suggestions to speed up coding and reduce errors.",
       icon: <BrainCircuit size={24} />,
@@ -155,11 +225,6 @@ function FeatureSection() {
       icon: <Zap size={24} />,
     },
     {
-      title: "Cross-Platform Compatibility",
-      description: "A seamless coding experience across all your devices.",
-      icon: <Laptop size={24} />,
-    },
-    {
       title: "Optimized Performance",
       description: "Designed for speed and efficiency, even with large projects.",
       icon: <Sparkles size={24} />,
@@ -168,27 +233,27 @@ function FeatureSection() {
 
 
   return (
-    <div className="py-20">
-      <div className="text-center mb-16">
+    <div id="features" className="py-16 md:py-20 scroll-mt-16">
+      <div className="text-center mb-12 md:mb-16">
         <div className="inline-flex items-center px-3 py-1 mb-4 rounded-full bg-emerald-900/30 border border-emerald-500/20 text-emerald-400 text-sm">
           FEATURES
         </div>
-        <h2 className="text-3xl md:text-5xl font-bold mb-6">
+        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
           Tools to Help You <span className="text-emerald-400">Code Better</span>
         </h2>
-        <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+        <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto">
           Designed to make your coding workflow smoother and more productive
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
         {features.map((feature, index) => (
           <div
             key={index}
-            className="group p-8 rounded-xl bg-gradient-to-b from-[#252525] to-[#222] border border-gray-800 hover:border-emerald-500/50 transition-all duration-300 hover:translate-y-[-4px] hover:shadow-lg hover:shadow-emerald-900/20"
+            className="group p-6 md:p-8 rounded-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-900/20"
           >
             <div className="flex items-center mb-4">
-              <div className="p-3 rounded-lg bg-emerald-400/10 text-emerald-400 mr-4">
+              <div className="p-3 rounded-lg bg-emerald-400/10 text-emerald-400 mr-4 flex-shrink-0">
                 {feature.icon}
               </div>
               <h3 className="text-xl font-semibold">{feature.title}</h3>
@@ -203,64 +268,220 @@ function FeatureSection() {
   )
 }
 
-function CTASection() {
+function AIFeaturesSection() {
   return (
-    <div className="py-20 my-10">
-      <div className="max-w-4xl mx-auto text-center relative">
-        <div className="absolute -inset-10 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 blur-3xl rounded-full z-0"></div>
-        <div className="relative z-10 bg-gradient-to-b from-[#252525] to-[#222] border border-gray-800 rounded-2xl p-12 shadow-2xl">
-          <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-emerald-500 text-[#1e1e1e] font-bold px-6 py-2 rounded-full text-sm">
-            BETA ACCESS
+    <div id="ai-features" className="py-16 md:py-24 scroll-mt-16">
+      <div className="text-center mb-12 md:mb-16">
+        <div className="inline-flex items-center px-3 py-1 mb-4 rounded-full bg-emerald-900/30 border border-emerald-500/20 text-emerald-400 text-sm">
+          AI-POWERED FEATURES
+        </div>
+        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
+          Supercharge Your Workflow with <span className="text-emerald-400">AI</span>
+        </h2>
+        <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto">
+          CodeX integrates powerful AI capabilities to make you more productive
+        </p>
+      </div>
+
+      <div className="space-y-24">
+        <CodeConverterFeature />
+        <AICodeAssistantFeature />
+        <CodeSuggestionFeature />
+      </div>
+    </div>
+  );
+}
+
+function CodeConverterFeature() {
+  return (
+    <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
+      <div className="w-full lg:w-1/2 order-2 lg:order-1">
+        <div className="relative">
+          <div className="absolute -inset-4 bg-emerald-500/20 rounded-2xl blur-xl"></div>
+          <div className="relative overflow-hidden rounded-xl border border-gray-800 shadow-2xl">
+            <VideoPlayer
+              src='/codeConverterVideo.mp4'
+              fallbackImage='/codeConverter1.png'
+              className='bg-red-800'
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="w-full lg:w-1/2 order-1 lg:order-2">
+        <div className="inline-flex items-center px-3 py-1 mb-4 rounded-full bg-emerald-900/30 border border-emerald-500/20 text-emerald-400 text-sm">
+          <Code2 size={16} className="mr-2" /> CODE CONVERTER
+        </div>
+        <h3 className="text-2xl md:text-3xl font-bold mb-4">
+          Translate Your Code Between Languages Instantly
+        </h3>
+        <p className="text-gray-300 mb-6">
+          Need your JavaScript in Python? PHP in Go? Our AI-powered code converter seamlessly translates your code between languages while preserving functionality and following best practices.
+        </p>
+
+        <div className="space-y-4">
+          <div className="flex items-start">
+            <div className="p-2 rounded-lg bg-emerald-400/10 text-emerald-400 mr-3 flex-shrink-0">
+              <Zap size={18} />
+            </div>
+            <div>
+              <h4 className="font-semibold">Lightning Fast</h4>
+              <p className="text-gray-400 text-sm">Convert entire files or code snippets in seconds</p>
+            </div>
           </div>
 
-          <h2 className="text-3xl md:text-5xl font-bold mb-6">
-            Ready to try <span className="text-emerald-400">CodeX</span>?
-          </h2>
-          <p className="text-xl text-gray-300 mb-8">
-            Join our beta program and help shape the future of coding tools.
-          </p>
-
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8">
-            <Button className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-6 text-lg rounded-md w-full sm:w-auto flex items-center justify-center">
-              <Download size={20} className="mr-2" />
-              Download Beta
-            </Button>
-            <Button className="bg-transparent border border-emerald-500 text-white hover:bg-emerald-900/20 px-8 py-6 text-lg rounded-md w-full sm:w-auto flex items-center justify-center">
-              <Users size={20} className="mr-2" />
-              Join Waitlist
-            </Button>
+          <div className="flex items-start">
+            <div className="p-2 rounded-lg bg-emerald-400/10 text-emerald-400 mr-3 flex-shrink-0">
+              <Languages size={18} />
+            </div>
+            <div>
+              <h4 className="font-semibold">Multiple Language Support</h4>
+              <p className="text-gray-400 text-sm">Python, JavaScript, TypeScript, Java, C#, PHP, Go, and more</p>
+            </div>
           </div>
 
-          <p className="text-gray-400 text-sm">Free during beta • We welcome your feedback</p>
+          <div className="flex items-start">
+            <div className="p-2 rounded-lg bg-emerald-400/10 text-emerald-400 mr-3 flex-shrink-0">
+              <CheckCircle2 size={18} />
+            </div>
+            <div>
+              <h4 className="font-semibold">Maintains Functionality</h4>
+              <p className="text-gray-400 text-sm">Preserves logic and behavior across languages</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-function Footer() {
+function AICodeAssistantFeature() {
   return (
-    <footer className="py-12 border-t border-gray-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="mb-6 md:mb-0">
-            <h2 className="text-2xl font-bold flex items-center">
-              <Code className="mr-2 text-emerald-400" /> CodeX
-            </h2>
-            <p className="text-gray-400 mt-2">© 2025 CodeX. All rights reserved.</p>
+    <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
+      <div className="w-full lg:w-1/2">
+        <div className="inline-flex items-center px-3 py-1 mb-4 rounded-full bg-emerald-900/30 border border-emerald-500/20 text-emerald-400 text-sm">
+          <BrainCircuit size={16} className="mr-2" /> AI CODE ASSISTANT
+        </div>
+        <h3 className="text-2xl md:text-3xl font-bold mb-4">
+          Your Intelligent Coding Partner
+        </h3>
+        <p className="text-gray-300 mb-6">
+          Get help with bugs, optimizations, and code reviews from an AI assistant that understands your codebase. Ask questions in natural language and receive contextually relevant solutions.
+        </p>
+
+        <div className="space-y-4">
+          <div className="flex items-start">
+            <div className="p-2 rounded-lg bg-emerald-400/10 text-emerald-400 mr-3 flex-shrink-0">
+              <MessageSquareCode size={18} />
+            </div>
+            <div>
+              <h4 className="font-semibold">Context-Aware</h4>
+              <p className="text-gray-400 text-sm">Gets insights from your entire file or project</p>
+            </div>
           </div>
 
-          <div className="flex flex-wrap justify-center md:justify-end gap-6 md:gap-8">
-            <a href="#" className="text-gray-400 hover:text-white transition-colors">About</a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors">Features</a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors">Documentation</a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors">Blog</a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors">Contact</a>
+          <div className="flex items-start">
+            <div className="p-2 rounded-lg bg-emerald-400/10 text-emerald-400 mr-3 flex-shrink-0">
+              <Terminal size={18} />
+            </div>
+            <div>
+              <h4 className="font-semibold">Natural Language Interface</h4>
+              <p className="text-gray-400 text-sm">Ask questions or request help in plain English</p>
+            </div>
+          </div>
+
+          <div className="flex items-start">
+            <div className="p-2 rounded-lg bg-emerald-400/10 text-emerald-400 mr-3 flex-shrink-0">
+              <FileCode size={18} />
+            </div>
+            <div>
+              <h4 className="font-semibold">Code Explanations</h4>
+              <p className="text-gray-400 text-sm">Get complex code explained in simple terms</p>
+            </div>
           </div>
         </div>
       </div>
-    </footer>
-  )
+
+      <div className="w-full lg:w-3/4 xl:w-2/3">
+        <div className="relative">
+          <div className="absolute -inset-6 bg-emerald-500/20 rounded-2xl blur-xl"></div>
+          <div className="relative overflow-hidden rounded-xl border border-gray-800 shadow-2xl">
+            <VideoPlayer
+              src="/AIassistant.mp4"
+              fallbackImage="/assisstant.png"
+              className="bg-emerald-500 w-full h-auto aspect-video"
+            />
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+  );
 }
+
+function CodeSuggestionFeature() {
+  return (
+    <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
+      <div className="w-full lg:w-3/4 xl:w-2/3 order-2 lg:order-1">
+        <div className="relative">
+          <div className="absolute -inset-6 bg-emerald-500/20 rounded-2xl blur-xl"></div>
+          <div className="relative overflow-hidden rounded-xl border border-gray-800 shadow-2xl">
+            <VideoPlayer
+              src="/aiSuggestion.mp4"
+              fallbackImage="/aiSuggestImage.png"
+              className="bg-emerald-500 w-full h-auto aspect-video object-cover"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="w-full lg:w-1/2 order-1 lg:order-2">
+        <div className="inline-flex items-center px-3 py-1 mb-4 rounded-full bg-emerald-900/30 border border-emerald-500/20 text-emerald-400 text-sm">
+          <Sparkles size={16} className="mr-2" /> CODE SUGGESTIONS
+        </div>
+        <h3 className="text-2xl md:text-3xl font-bold mb-4">
+          Smart Completion That Understands Your Code
+        </h3>
+        <p className="text-gray-300 mb-6">
+          Get intelligent code suggestions as you type. Our AI analyzes your codebase to suggest relevant functions, methods, and code blocks that fit your specific context.
+        </p>
+
+        <div className="space-y-4">
+          <div className="flex items-start">
+            <div className="p-2 rounded-lg bg-emerald-400/10 text-emerald-400 mr-3 flex-shrink-0">
+              <Lightbulb size={18} />
+            </div>
+            <div>
+              <h4 className="font-semibold">Context-Aware Suggestions</h4>
+              <p className="text-gray-400 text-sm">Gets smarter the more you code in your project</p>
+            </div>
+          </div>
+
+          <div className="flex items-start">
+            <div className="p-2 rounded-lg bg-emerald-400/10 text-emerald-400 mr-3 flex-shrink-0">
+              <Zap size={18} />
+            </div>
+            <div>
+              <h4 className="font-semibold">Complete Functions & Blocks</h4>
+              <p className="text-gray-400 text-sm">Suggests entire functions, not just single lines</p>
+            </div>
+          </div>
+
+          <div className="flex items-start">
+            <div className="p-2 rounded-lg bg-emerald-400/10 text-emerald-400 mr-3 flex-shrink-0">
+              <Code2 size={18} />
+            </div>
+            <div>
+              <h4 className="font-semibold">Best Practice Recommendations</h4>
+              <p className="text-gray-400 text-sm">Follows coding standards and patterns in your codebase</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 export default Home

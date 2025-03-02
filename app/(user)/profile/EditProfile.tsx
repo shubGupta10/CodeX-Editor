@@ -107,11 +107,11 @@ export function EditProfileDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-[#252526] border-none text-white sm:max-w-md w-full mx-auto">
+      <DialogContent className="bg-[#252525] border border-gray-800 text-white sm:max-w-md w-full mx-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-white">Edit Profile</DialogTitle>
         </DialogHeader>
-        
+       
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
           <div className="space-y-2">
             <Label htmlFor="firstName" className="text-white">First Name</Label>
@@ -120,14 +120,14 @@ export function EditProfileDialog({
               name="firstName"
               value={formData.firstName}
               onChange={handleChange}
-              className="bg-[#1e1e1e] border-gray-700 text-white w-full"
+              className="bg-[#1e1e1e] border-gray-800 text-white w-full"
               placeholder="First Name"
             />
             {errors.firstName && (
               <p className="text-sm text-red-500">{errors.firstName}</p>
             )}
           </div>
-          
+         
           <div className="space-y-2">
             <Label htmlFor="lastName" className="text-white">Last Name</Label>
             <Input
@@ -135,14 +135,14 @@ export function EditProfileDialog({
               name="lastName"
               value={formData.lastName}
               onChange={handleChange}
-              className="bg-[#1e1e1e] border-gray-700 text-white w-full"
+              className="bg-[#1e1e1e] border-gray-800 text-white w-full"
               placeholder="Last Name"
             />
             {errors.lastName && (
               <p className="text-sm text-red-500">{errors.lastName}</p>
             )}
           </div>
-          
+         
           <div className="space-y-2">
             <Label htmlFor="username" className="text-white">Username</Label>
             <Input
@@ -150,27 +150,27 @@ export function EditProfileDialog({
               name="username"
               value={formData.username}
               onChange={handleChange}
-              className="bg-[#1e1e1e] border-gray-700 text-white w-full"
+              className="bg-[#1e1e1e] border-gray-800 text-white w-full"
               placeholder="Username"
             />
             {errors.username && (
               <p className="text-sm text-red-500">{errors.username}</p>
             )}
           </div>
-          
+         
           <DialogFooter className="pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
-              className="bg-transparent border-gray-600 text-white hover:bg-gray-700"
+              className="bg-transparent border-gray-800 text-white hover:bg-[#1e1e1e]"
               disabled={loading}
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
               disabled={loading}
             >
               {loading ? (

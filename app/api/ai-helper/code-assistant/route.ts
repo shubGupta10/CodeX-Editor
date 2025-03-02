@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     const llm = new ChatGoogleGenerativeAI({
       modelName: "gemini-1.5-flash",
       apiKey: process.env.GOOGLE_GEMINI_API_KEY,
-      maxOutputTokens: 1024,
+      maxOutputTokens: 3072,
       temperature: 0.7,
     });
 
@@ -80,16 +80,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const fullPrompt = `You are an expert code assistant. Given the code below, analyze it and provide detailed improvements, bug fixes, and performance optimizations.
+    const fullPrompt = `You are an expert programming assistant.  
+    Analyze the following code and **respond according to the user’s request**.  
+    
+    ### Code:  
+    \`\`\`  
+    ${code}  
+    \`\`\`  
+    
+    ### User Request:  
+    ${prompt}  
+    
+    ### Guidelines for Response:  
+    - If the user asks for **fixes**, find and fix **bugs** (if any).  
+    - If the user asks for **improvements**, suggest better coding practices.  
+    - If the user asks for **a function**, **only** return the requested function without extra explanations.  
+    - Always format the response properly in **Markdown** and use **valid code syntax**.  
+    
+    Now, generate the best possible response in **Markdown format**.`;
 
-Code:
-\`\`\`
-${code}
-\`\`\`
-
-User request: ${prompt}
-
-Please provide your response in markdown format with code examples as needed.`;
 
     try {
       const stream = await llm.stream(fullPrompt);

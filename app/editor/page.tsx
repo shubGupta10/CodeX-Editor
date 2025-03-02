@@ -11,9 +11,10 @@ import { defaultEditorOptions, SupportedLanguage } from "@/app/utils/editor-conf
 import { toast } from "react-hot-toast";
 import useFileStore from "@/app/store/useFileStore";
 import { Button } from "@/components/ui/button";
-import { Save } from "lucide-react";
+import { Save, Lightbulb } from "lucide-react";
 import { useAIStore } from "../store/useAIStore";
 import CodeSuggestion from "@/components/CodeSuggestion/codeSuggesstion";
+import { Switch } from "@/components/ui/switch";
 
 export default function EditorPage() {
   const {
@@ -33,6 +34,11 @@ export default function EditorPage() {
   const [collapsedSidebar, setCollapsedSidebar] = useState(false);
   const { code, setCode, setCodeForConversion } = useAIStore();
   const editorRef = useRef<any>(null);
+  
+  // New state for AI suggestions toggle
+  const [aiSuggestionsEnabled, setAiSuggestionsEnabled] = useState(false);
+  const [showAiSettingsPanel, setShowAiSettingsPanel] = useState(false);
+  const codeSuggestionRef = useRef<any>(null);
 
   useEffect(() => {
     if (selectedFile && selectedFile.language) {
@@ -118,6 +124,18 @@ export default function EditorPage() {
     editorRef.current = editor;
   };
 
+  // Toggle AI suggestions and panel
+  const toggleAiSuggestions = () => {
+    setShowAiSettingsPanel(!showAiSettingsPanel);
+  };
+
+  // Force suggestions to generate when button is clicked
+  const handleForceSuggestions = () => {
+    if (codeSuggestionRef.current && typeof codeSuggestionRef.current.forceFetchSuggestions === 'function') {
+      codeSuggestionRef.current.forceFetchSuggestions();
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col bg-[#1e1e1e] text-gray-100">
       <EditorHeader
@@ -165,6 +183,16 @@ export default function EditorPage() {
                           <span className="text-sm text-gray-300">{selectedFile.name}</span>
                           {isDirty && <span className="ml-2 text-xs text-gray-500">(unsaved)</span>}
                         </div>
+                        
+                        <Button
+                          size="default"
+                          variant="ghost"
+                          className={`h-7 px-2 ${aiSuggestionsEnabled ? 'text-yellow-400 hover:text-yellow-300' : 'text-gray-400 hover:text-gray-300'} hover:bg-[#252525] transition-colors`}
+                          onClick={toggleAiSuggestions}
+                        >
+                          <Lightbulb className="h-3.5 w-3.5 mr-1" />
+                          AI Suggestions
+                        </Button>
                         <Button
                           size="sm"
                           variant="ghost"
@@ -176,6 +204,38 @@ export default function EditorPage() {
                           Save
                         </Button>
                       </div>
+                      
+                      {/* AI Settings Panel */}
+                      {showAiSettingsPanel && (
+                        <div className="px-4 py-2 border-b border-gray-500 bg-[#474545] flex items-center justify-between">
+                            <div className="flex items-center">
+                            <span className="text-sm text-gray-300 mr-3">Enable AI suggestions</span>
+                            <Switch 
+                              checked={aiSuggestionsEnabled} 
+                              onCheckedChange={(checked: boolean) => {
+                              setAiSuggestionsEnabled(checked);
+                              if (checked) {
+                                handleForceSuggestions();
+                              }
+                              }}
+                              className=" data-[state=checked]:bg-emerald-600"
+                            />
+                            </div>
+                          <div className="flex items-center">
+                            {aiSuggestionsEnabled && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 px-3 text-xs bg-emerald-400/30 hover:bg-emerald-800/50 border-emerald-700 text-emerald-400 hover:text-emerald-300 mr-2"
+                                onClick={handleForceSuggestions}
+                              >
+                                Generate Now
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
                       <div className="flex-1 relative">
                         <Editor
                           height="100%"
@@ -187,7 +247,7 @@ export default function EditorPage() {
                           options={{
                             ...defaultEditorOptions.monaco,
                             minimap: { enabled: true },
-                            quickSuggestions: {other: true, comments: true, strings: true},
+                            quickSuggestions: { other: true, comments: true, strings: true },
                             suggestOnTriggerCharacters: true,
                             autoClosingBrackets: "always",
                             autoIndent: 'full',
@@ -230,11 +290,13 @@ export default function EditorPage() {
                             </div>
                           }
                         />
-                        
-                        <CodeSuggestion 
+
+                        <CodeSuggestion
+                          ref={codeSuggestionRef}
                           code={fileContent}
                           editorRef={editorRef}
                           onApplySuggestion={setFileContent}
+                          isEnabled={aiSuggestionsEnabled}
                         />
                       </div>
                     </div>

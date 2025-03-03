@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { Menu, Code, User, LogOut, Settings, X } from "lucide-react"
 import Link from "next/link"
 import useAuthStore from "@/app/store/userAuthStore"
@@ -142,6 +142,7 @@ function Navbar() {
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="right" className="w-[250px] bg-[#1e1e1e] text-white p-0 border-l border-gray-800">
+                  <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                   <div className="px-4 py-6 space-y-4">
                     <div className="flex items-center mb-6">
                       <Code className="h-6 w-6 text-emerald-400 mr-2" />

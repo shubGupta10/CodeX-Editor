@@ -11,7 +11,7 @@ import { defaultEditorOptions, SupportedLanguage } from "@/app/utils/editor-conf
 import { toast } from "react-hot-toast";
 import useFileStore from "@/app/store/useFileStore";
 import { Button } from "@/components/ui/button";
-import { Save, Lightbulb } from "lucide-react";
+import { Save, Lightbulb, Laptop, Smartphone, XCircle } from "lucide-react";
 import { useAIStore } from "../store/useAIStore";
 import CodeSuggestion from "@/components/CodeSuggestion/codeSuggesstion";
 import { Switch } from "@/components/ui/switch";
@@ -35,10 +35,25 @@ export default function EditorPage() {
   const { code, setCode, setCodeForConversion } = useAIStore();
   const editorRef = useRef<any>(null);
   
-  // New state for AI suggestions toggle
   const [aiSuggestionsEnabled, setAiSuggestionsEnabled] = useState(false);
   const [showAiSettingsPanel, setShowAiSettingsPanel] = useState(false);
   const codeSuggestionRef = useRef<any>(null);
+  
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobileCheck = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && window.innerWidth < 768;
+      setIsMobile(mobileCheck);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
 
   useEffect(() => {
     if (selectedFile && selectedFile.language) {
@@ -135,6 +150,36 @@ export default function EditorPage() {
       codeSuggestionRef.current.forceFetchSuggestions();
     }
   };
+
+  if (isMobile) {
+    return (
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-[#1e1e1e] text-center p-6">
+        <div className="max-w-md mx-auto">
+          <div className="relative mx-auto mb-6 w-16 h-16">
+            <Smartphone className="h-16 w-16 text-gray-500 absolute" />
+            <XCircle className="h-8 w-8 text-red-500 absolute bottom-0 right-0" />
+          </div>
+          <h1 className="text-2xl font-bold text-emerald-400 mb-4">Nice try, but not today!</h1>
+          <p className="text-gray-300 mb-6">
+            We admire your enthusiasm, but coding on a phone is like trying to paint a masterpiece with your elbow. 
+            Some things just need the right tools.
+          </p>
+          <div className="bg-gray-800/50 rounded-lg p-4 mb-6">
+            <p className="text-yellow-400 text-sm mb-2">Friendly heads-up:</p>
+            <p className="text-gray-400 text-sm">
+              This code editor needs a larger screen and a proper keyboard to work well. 
+              Your phone screen is just too small for a good coding experience.
+            </p>
+          </div>
+          <div className="flex items-center justify-center">
+            <p className="text-emerald-400 text-sm">
+              Come back on a laptop, desktop, or tablet with keyboard. Your code (and fingers) will thank you!
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen flex flex-col bg-[#1e1e1e] text-gray-100">

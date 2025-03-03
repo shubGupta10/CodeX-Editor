@@ -1,15 +1,11 @@
 "use client"
 
 import { Button } from '@/components/ui/button'
-import Image from 'next/image'
-import React, { useRef, useEffect, useState } from 'react'
-import { ArrowRight, Code, Lock, Terminal, Zap, BrainCircuit, Palette, Sparkles, GitBranch, Laptop, Check, Star, Download, Users, Play, Pause, Code2Icon, MessageSquareCode, FileCode, SendHorizontal, CheckCircle2, Languages, Code2, RotateCcw, Lightbulb } from 'lucide-react'
+import React, { useRef, useEffect } from 'react'
+import { ArrowRight, Code,  Terminal, Zap, BrainCircuit, Palette, Sparkles, GitBranch, Laptop, Check, Star,   Play, Pause, Code2Icon, MessageSquareCode, FileCode, SendHorizontal, CheckCircle2, Languages, Code2, Lightbulb } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { Footer } from '@/components/Footer'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 function Home() {
-  const router = useRouter()
   return (
     <div className="bg-[#1e1e1e] text-white min-h-screen overflow-hidden">
       <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-emerald-500/10 blur-[100px] rounded-full z-0"></div>
@@ -20,6 +16,7 @@ function Home() {
         <AboutSection />
         <FeatureSection />
         <AIFeaturesSection />
+        <CTASection/>
       </main>
     </div>
   )
@@ -109,12 +106,12 @@ function HeroSection() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <Button onClick={() => router.push("/auth/register")} className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-5 text-lg rounded-md flex items-center group transition-all">
+          <Button onClick={() => router.push("/editor")} className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-5 text-lg rounded-md flex items-center group transition-all">
             Try CodeX
             <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={20} />
           </Button>
 
-          <Button variant="outline" className="border-gray-700 hover:bg-gray-800 hover:border-gray-600 text-black px-6 py-5 text-lg rounded-md">
+          <Button onClick={() => router.push("/editor")} variant="outline" className="border-gray-700 hover:bg-gray-300 hover:border-gray-600 text-black px-6 py-5 text-lg rounded-md">
             View Demo
           </Button>
         </div>
@@ -141,10 +138,10 @@ function HeroSection() {
             </div>
           </div>
           <div className="pt-10">
-            <img
-              src="/homeimg.png"
-              alt="Code Converter Demo"
-              className="w-full h-auto max-h-[600px] object-contain"
+            <VideoPlayer
+              src="https://res.cloudinary.com/dkp6hsvoy/video/upload/v1741006974/iie9bysa6ykg51fk8ior.mp4"
+              fallbackImage="https://res.cloudinary.com/dkp6hsvoy/image/upload/v1741011264/codex-images/sicmrhfqdj0l4cemawiq.png"
+              className="relative z-20 rounded-xl w-full h-full object-contain"
             />
           </div>
         </div>
@@ -156,45 +153,66 @@ function HeroSection() {
 
 function AboutSection() {
   return (
-    <div id="about" className="py-16 md:py-24 flex flex-col items-center scroll-mt-16">
-      <div className="text-center mb-12 md:mb-16">
-        <div className="inline-flex items-center px-3 py-1 mb-4 rounded-full bg-emerald-900/30 border border-emerald-500/20 text-emerald-400 text-sm">
+    <div id="about" className="w-full py-12 sm:py-16 md:py-20 lg:py-24 flex flex-col items-center scroll-mt-16 px-4 sm:px-6 md:px-8">
+      <div className="text-center mb-8 sm:mb-10 md:mb-12 lg:mb-16 w-full max-w-4xl mx-auto">
+        <div className="inline-flex items-center px-3 py-1 mb-3 sm:mb-4 rounded-full bg-emerald-900/30 border border-emerald-500/20 text-emerald-400 text-xs sm:text-sm">
           ABOUT CODEX
         </div>
-        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6">
           A Better Way to <span className="text-emerald-400">Code</span>
         </h2>
-        <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto">
+        <p className="text-base sm:text-lg md:text-xl text-gray-300 max-w-xs sm:max-w-lg md:max-w-2xl mx-auto">
           I'm building tools to make coding more intuitive and efficient
         </p>
       </div>
 
-      <div className="relative w-full max-w-7xl ">
-        <div className=" relative w-full">
-          <div className="absolute -inset-8 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 blur-2xl rounded-2xl z-0"></div>
+      <div className="relative w-full max-w-7xl">
+        <div className="relative w-full">
+          {/* Background gradient effect - responsive sizing */}
+          <div className="absolute -inset-4 sm:-inset-6 md:-inset-8 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 blur-xl sm:blur-2xl rounded-2xl z-0"></div>
           <div className="absolute rounded-xl bg-gradient-to-r from-emerald-500/30 to-transparent z-10"></div>
 
-          <VideoPlayer
-            src="/editorMain.mp4"
-            fallbackImage="/homeimg.png"
-            className="relative z-20 rounded-xl w-full h-full object-contain"
-          />
-          <div className="absolute -bottom-6 md:-bottom-8 right-4 md:-right-6 bg-[#252525] border border-gray-800 p-4 rounded-lg shadow-xl z-30 max-w-xs transform transition-transform hover:scale-105">
-            <div className="flex items-start">
-              <div className="text-emerald-400 bg-emerald-400/10 p-2 rounded-lg mr-3 flex-shrink-0">
-                <Zap size={20} />
+          {/* Increased video size for mobile */}
+          <div className="w-full h-auto">
+            <VideoPlayer
+              src="https://res.cloudinary.com/dkp6hsvoy/video/upload/v1741006974/iie9bysa6ykg51fk8ior.mp4"
+              fallbackImage="https://res.cloudinary.com/dkp6hsvoy/image/upload/v1741011264/codex-images/sicmrhfqdj0l4cemawiq.png"
+              className="relative z-20 rounded-xl w-full h-full object-cover"
+            />
+          </div>
+
+          {/* Feature cards - hidden on mobile and tablets, visible on desktop (lg) */}
+          <div className="hidden lg:flex absolute bottom-8 right-8 flex-col gap-4 z-30">
+            {/* Code Suggestions */}
+            <div className="bg-[#252525] border border-gray-800 p-4 rounded-lg shadow-xl max-w-xs transform transition-transform hover:scale-105">
+              <div className="flex items-start">
+                <div className="text-emerald-400 bg-emerald-400/10 p-2 rounded-lg mr-3 flex-shrink-0">
+                  <Zap size={20} />
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-1">Code Suggestions</h4>
+                  <p className="text-gray-400 text-sm">Get helpful completion suggestions as you type</p>
+                </div>
               </div>
-              <div>
-                <h4 className="font-semibold mb-1">Code suggestions</h4>
-                <p className="text-gray-400 text-sm">Get helpful completion suggestions as you type</p>
+            </div>
+
+            {/* Code Converter */}
+            <div className="bg-[#252525] border border-gray-800 p-4 rounded-lg shadow-xl max-w-xs transform transition-transform hover:scale-105">
+              <div className="flex items-start">
+                <div className="text-emerald-400 bg-emerald-400/10 p-2 rounded-lg mr-3 flex-shrink-0">
+                  <Code size={20} />
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-1">Code Converter</h4>
+                  <p className="text-gray-400 text-sm">Seamlessly translate your code between languages</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
     </div>
-  )
+  );
 }
 
 function FeatureSection() {
@@ -283,7 +301,7 @@ function AIFeaturesSection() {
         </p>
       </div>
 
-      <div className="space-y-24">
+      <div className="space-y-52">
         <CodeConverterFeature />
         <AICodeAssistantFeature />
         <CodeSuggestionFeature />
@@ -295,14 +313,14 @@ function AIFeaturesSection() {
 function CodeConverterFeature() {
   return (
     <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
-      <div className="w-full lg:w-1/2 order-2 lg:order-1">
+      <div className="w-full lg:w-3/4 xl:w-2/3 order-2 lg:order-1">
         <div className="relative">
-          <div className="absolute -inset-4 bg-emerald-500/20 rounded-2xl blur-xl"></div>
+          <div className="absolute -inset-6 bg-emerald-500/20 rounded-2xl blur-xl"></div>
           <div className="relative overflow-hidden rounded-xl border border-gray-800 shadow-2xl">
             <VideoPlayer
-              src='/codeConverterVideo.mp4'
-              fallbackImage='/codeConverter1.png'
-              className='bg-red-800'
+              src="https://res.cloudinary.com/dkp6hsvoy/video/upload/v1741008565/codeConverterNewVideo664654656_vckobr.mp4"
+              fallbackImage="https://res.cloudinary.com/dkp6hsvoy/image/upload/v1741011263/codex-images/gcbcc5dapgmq7rhwnv5l.png"
+              className="bg-emerald-500 w-full h-auto object-cover"
             />
           </div>
         </div>
@@ -407,8 +425,8 @@ function AICodeAssistantFeature() {
           <div className="absolute -inset-6 bg-emerald-500/20 rounded-2xl blur-xl"></div>
           <div className="relative overflow-hidden rounded-xl border border-gray-800 shadow-2xl">
             <VideoPlayer
-              src="/AIassistant.mp4"
-              fallbackImage="/assisstant.png"
+              src="https://res.cloudinary.com/dkp6hsvoy/video/upload/v1741006806/u80sbe8yvs7mqe3i56hc.mp4"
+              fallbackImage="https://res.cloudinary.com/dkp6hsvoy/image/upload/v1741011263/codex-images/qqmhkm8psuu7e1gmwtdp.png"
               className="bg-emerald-500 w-full h-auto aspect-video"
             />
           </div>
@@ -428,8 +446,8 @@ function CodeSuggestionFeature() {
           <div className="absolute -inset-6 bg-emerald-500/20 rounded-2xl blur-xl"></div>
           <div className="relative overflow-hidden rounded-xl border border-gray-800 shadow-2xl">
             <VideoPlayer
-              src="/aiSuggestion.mp4"
-              fallbackImage="/aiSuggestImage.png"
+              src="https://res.cloudinary.com/dkp6hsvoy/video/upload/v1741006801/kwnwulnclj17ob76zpoh.mp4"
+              fallbackImage="https://res.cloudinary.com/dkp6hsvoy/image/upload/v1741011263/codex-images/dsgf0npbuax4tujqk8yw.png"
               className="bg-emerald-500 w-full h-auto aspect-video object-cover"
             />
           </div>
@@ -482,6 +500,42 @@ function CodeSuggestionFeature() {
     </div>
   );
 }
+
+function CTASection() {
+  const router = useRouter();
+  return (
+    <section id="cta" className="w-full py-16 md:py-24 px-4 sm:px-6 md:px-8">
+      <div className="max-w-5xl mx-auto">
+        <div className="relative overflow-hidden rounded-2xl border border-gray-800 p-8 md:p-12">
+          <div className="relative flex flex-col items-center text-center">
+            {/* Simple Tagline */}
+            <div className="inline-flex items-center px-3 py-1 mb-4 rounded-full bg-emerald-900/30 border border-emerald-500/20 text-emerald-400 text-sm">
+              A better way to write code
+            </div>
+
+            {/* Headline */}
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
+              Try <span className="text-emerald-400">CodeX</span> and see for yourself
+            </h2>
+
+            {/* Description */}
+            <p className="text-lg text-gray-300 mb-8 max-w-2xl">
+              CodeX helps you write code with smart suggestions and a built-in code converter. Give it a shot and let me know what you think!
+            </p>
+
+            {/* CTA Button */}
+            <div onClick={() => router.push("/editor")} className="flex flex-col sm:flex-row gap-4">
+              <button className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/20">
+                Try CodeX
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 
 
 export default Home

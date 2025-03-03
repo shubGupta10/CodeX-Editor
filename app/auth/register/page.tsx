@@ -89,8 +89,8 @@ const RegisterPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#252526] py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md bg-[#1e1e1e] text-white border-gray-700">
+    <div className="min-h-screen flex items-center justify-center bg-[#1e1e1e] py-12 px-4 sm:px-6 lg:px-8">
+      <Card className="w-full max-w-md bg-[#1e1e1e] text-white border-gray-800">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">Welcome to CodeX</CardTitle>
           <CardDescription className="text-center text-gray-400">Create an account to get started</CardDescription>
@@ -114,7 +114,7 @@ const RegisterPage = () => {
                 type="text"
                 required
                 disabled={isLoading}
-                className="w-full bg-[#333333] text-white border-gray-600 focus:border-blue-500"
+                className="w-full bg-[#252525] text-white border-gray-800 focus:border-emerald-400"
                 value={formData.username}
                 onChange={handleChange}
               />
@@ -130,7 +130,7 @@ const RegisterPage = () => {
                 type="email"
                 required
                 disabled={isLoading}
-                className="w-full bg-[#333333] text-white border-gray-600 focus:border-blue-500"
+                className="w-full bg-[#252525] text-white border-gray-800 focus:border-emerald-400"
                 value={formData.email}
                 onChange={handleChange}
               />
@@ -147,19 +147,19 @@ const RegisterPage = () => {
                 required
                 minLength={6}
                 disabled={isLoading}
-                className="w-full bg-[#333333] text-white border-gray-600 focus:border-blue-500"
+                className="w-full bg-[#252525] text-white border-gray-800 focus:border-emerald-400"
                 value={formData.password}
                 onChange={handleChange}
               />
             </div>
 
-            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
+            <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white" disabled={isLoading}>
               {isLoading ? "Creating Account..." : "Create Account"}
             </Button>
           </form>
 
           <div className="relative my-6">
-            <Separator className="bg-gray-600" />
+            <Separator className="bg-gray-800" />
             <div className="absolute inset-0 flex items-center justify-center">
               <span className="bg-[#1e1e1e] px-2 text-gray-400 text-sm">Or continue with</span>
             </div>
@@ -168,7 +168,7 @@ const RegisterPage = () => {
           <Button
             onClick={handleGoogleSignIn}
             variant="outline"
-            className="w-full bg-[#333333] text-white border-gray-600 hover:bg-[#444444]"
+            className="w-full bg-[#f6f5f5] text-black border-gray-800 hover:bg-[#cacaca]"
             disabled={isLoading}
           >
             <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
@@ -195,7 +195,7 @@ const RegisterPage = () => {
         <CardFooter className="flex justify-center">
           <p className="text-sm text-gray-400">
             Already have an account?{" "}
-            <a href="/auth/login" className="text-blue-400 hover:text-blue-300 font-medium">
+            <a href="/auth/login" className="text-emerald-400 hover:text-emerald-300 font-medium">
               Sign in
             </a>
           </p>
@@ -206,4 +206,3 @@ const RegisterPage = () => {
 }
 
 export default RegisterPage
-

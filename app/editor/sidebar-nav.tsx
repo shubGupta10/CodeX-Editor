@@ -17,10 +17,10 @@ interface SidebarNavProps {
 export default function SidebarNav({ activeTab, onTabChange, collapsed = false }: SidebarNavProps) {
   const sidebarIcons = [
     { id: "files", icon: <FilesIcon className="w-5 h-5" />, tooltip: "Explorer" },
-    { id: "search", icon: <Search className="w-5 h-5" />, tooltip: "Search" },
+    // { id: "search", icon: <Search className="w-5 h-5" />, tooltip: "Search" },
     // { id: "git", icon: <GitBranchIcon className="w-5 h-5" />, tooltip: "Source Control" },
     // { id: "debug", icon: <BugIcon className="w-5 h-5" />, tooltip: "Run and Debug" },
-    { id: "settings", icon: <Settings className="w-5 h-5" />, tooltip: "Settings" },
+    // { id: "settings", icon: <Settings className="w-5 h-5" />, tooltip: "Settings" },
   ];
 
   return (

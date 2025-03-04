@@ -24,7 +24,7 @@ export default function TerminalPanel({ output, status }: TerminalPanelProps) {
     <div className={`h-full bg-[#1e1e1e] flex flex-col ${maximized ? 'fixed inset-0 z-50' : ''}`}>
       <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-800 bg-[#252525]">
         <Terminal className="w-4 h-4 text-emerald-400" />
-        <h3 className="text-sm font-medium text-gray-300">TERMINAL</h3>
+        <h3 className="text-sm font-medium text-gray-300">OUTPUT</h3>
         {status === "success" && (
           <CheckCircle2 className="w-4 h-4 text-emerald-400 ml-2" />
         )}
@@ -40,14 +40,6 @@ export default function TerminalPanel({ output, status }: TerminalPanelProps) {
             onClick={copyToClipboard}
           >
             <Copy className="w-3.5 h-3.5" />
-          </Button>
-          <Button 
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 text-gray-400 hover:text-emerald-400 hover:bg-[#2a2a2a] transition-colors"
-            onClick={clearOutput}
-          >
-            <Trash className="w-3.5 h-3.5" />
           </Button>
           <Button 
             variant="ghost"

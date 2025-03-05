@@ -384,7 +384,7 @@ function AICodeAssistantFeature() {
           Your Intelligent Coding Partner
         </h3>
         <p className="text-gray-300 mb-6">
-          Get help with bugs, optimizations, and code reviews from an AI assistant that understands your codebase. Ask questions in natural language and receive contextually relevant solutions.
+          Get help with bugs, optimizations, and code reviews from an AI assistant that understands your current file. Ask questions in natural language and receive contextually relevant solutions.
         </p>
 
         <div className="space-y-4">
@@ -462,7 +462,7 @@ function CodeSuggestionFeature() {
           Smart Completion That Understands Your Code
         </h3>
         <p className="text-gray-300 mb-6">
-          Get intelligent code suggestions as you type. Our AI analyzes your codebase to suggest relevant functions, methods, and code blocks that fit your specific context.
+          Get intelligent code suggestions as you type. Our AI analyzes your current file to suggest relevant functions, methods, and code blocks that fit your specific context.
         </p>
 
         <div className="space-y-4">
@@ -492,7 +492,7 @@ function CodeSuggestionFeature() {
             </div>
             <div>
               <h4 className="font-semibold">Best Practice Recommendations</h4>
-              <p className="text-gray-400 text-sm">Follows coding standards and patterns in your codebase</p>
+              <p className="text-gray-400 text-sm">Follows coding standards and patterns in your current file</p>
             </div>
           </div>
         </div>

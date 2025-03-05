@@ -17,10 +17,10 @@ export async function GET() {
             );
         }
 
-        const userId = session.user.id;
-        console.log("Fetching User with ID:", userId);
+        const currentUserEmail = await session.user.email;
 
-        const foundUser = await User.findById(userId).lean();
+
+        const foundUser = await User.findOne({email: currentUserEmail})
         if (!foundUser) {
             return NextResponse.json(
                 { message: "User not found" },

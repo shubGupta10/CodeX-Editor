@@ -1,36 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CodeX - AI-Powered Web Code Editor
 
-## Getting Started
+## 🚀 Project Overview
 
-First, run the development server:
+CodeX is a web-based code editor that makes coding easier with powerful AI-driven features. It allows users to write, run, and improve code across different programming languages, providing a smooth and efficient coding experience. With an intuitive interface and real-time assistance, CodeX helps developers of all levels code faster and smarter. 
 
+[Live Demo](https://x-codex.vercel.app)
+
+## 🌟 Key Features
+
+### 1. Multi-Language Code Editor
+- Support for multiple programming languages
+- Monaco editor for rich coding experience
+- Syntax highlighting
+- Safe code execution environment using Piston API
+
+### 2. 🤖 AI Code Assistant
+- Contextual bug fixing
+- Code optimization suggestions
+- In-depth code reviews
+- Natural language interaction with AI
+
+### 3. 💡 Intelligent Code Suggestions
+- Context-aware code completion
+- Suggests functions, methods, and code blocks
+- Follows best practices and coding standards
+
+### 4. 🔄 Code Converter
+- Instant translation between programming languages
+- Supports Python, JavaScript, TypeScript, Java, C#, PHP, Go, and more
+- Preserves code logic and functionality
+
+### 5. 📂 File Management
+- Create, edit, and delete files effortlessly
+- Organize project files within the editor
+- Smooth and intuitive interface for managing code files
+
+## 🛠 Tech Stack
+
+- **Frontend**: Next.js
+- **Backend**: Node.js
+- **UI**: Shadcn, Tailwind CSS
+- **Editor**: Monaco Editor
+- **Code Execution**: Piston API
+- **Authentication**: Next Auth
+- **State Management**: Zustand
+- **AI Integration**: 
+  - Gemini AI
+  - LangChain
+- **Database**: 
+  - MongoDB Atlas (Permanent Data)
+  - Redis (Caching and Temporary Data)
+- **Hosting**: Vercel
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js (v18+)
+- npm or yarn
+- Docker (optional)
+
+### Installation
+
+1. Clone the repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/shubGupta10/CodeX-Editor
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies
+```bash
+cd codex
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Set up environment variables
+```bash
+cp .env.example .env.local
+# Edit .env.local with your credentials
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Run the development server
+```bash
+npm run dev
+```
 
-## Learn More
+## 🤝 Contributing
 
-To learn more about Next.js, take a look at the following resources:
+Contributions are welcome! Please follow these steps:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+<!-- ## 📄 License
 
-## Deploy on Vercel
+Distributed under the MIT License. See `LICENSE` for more information. -->
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📞 Contact
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project Maintainer  
+Contact Me here:  [Email](mailto:shubhamkgupta720@gmail.com)
+
+Project Link: [https://github.com/shubGupta10/CodeX-Editor](https://github.com/shubGupta10/CodeX-Editor)

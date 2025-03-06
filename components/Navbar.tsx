@@ -73,7 +73,7 @@ function Navbar() {
                 href="/feedback-form"
                 className="px-3 py-2 text-gray-300 hover:text-white transition-colors"
               >
-                Feedback From
+                Feedback
               </Link>
             </div>
           </div>

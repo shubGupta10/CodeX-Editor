@@ -42,12 +42,12 @@ export async function createFile(fileName: string, userId: string) {
   try {
     console.log("Creating empty file:", fileName, "for User ID:", userId);
 
-    const filePath = `${userId}/${fileName}`; // Organizing files by user
+    const filePath = `${userId}/${fileName}`; 
 
-    const emptyFile = new Blob([""], { type: "text/plain" }); // Empty file content
+    const emptyFile = new Blob([""], { type: "text/plain" }); 
 
     const { data, error } = await supabase.storage
-      .from("ide-files") // 🔹 Use your actual bucket name
+      .from("ide-files") 
       .upload(filePath, emptyFile, { upsert: true });
 
     if (error) {
@@ -57,12 +57,11 @@ export async function createFile(fileName: string, userId: string) {
 
     console.log("Created File Path:", data.path);
 
-    // 🔹 Generate a public URL (since your storage is public)
     const { data: publicUrlData } = supabase.storage
       .from("ide-files")
       .getPublicUrl(filePath);
 
-    return publicUrlData.publicUrl; // Return public URL
+    return publicUrlData.publicUrl; 
   } catch (err) {
     console.error("Error in createFile:", err);
     throw err;
@@ -145,7 +144,7 @@ export const editCurrentFile = async (
     }
 
     // 🔍 Construct correct paths
-    const oldFilePath = `${userId}/${oldFileName}`; // FIX: Use oldFileName instead of oldFile
+    const oldFilePath = `${userId}/${oldFileName}`; 
     const newFilePath = `${userId}/${newFileName}`;
 
     console.log("📝 Attempting to rename file:");

@@ -1,11 +1,12 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, User, MessageSquare, Send } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useSession } from 'next-auth/react';
 
 interface FormData {
   name: string;
@@ -18,8 +19,10 @@ interface SubmitResponse {
 }
 
 function FeedbackForm() {
+  const user = useSession();
+  const userName = user.data?.user.name;
   const [formData, setFormData] = useState<FormData>({
-    name: '',
+    name: userName || "",
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -33,17 +36,26 @@ function FeedbackForm() {
     }));
   };
 
+  useEffect(() => {
+    if (userName) {
+      setFormData(prev => ({
+        ...prev,
+        name: userName
+      }));
+    }
+  }, [userName])
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSuccessMessage('');
-    
+
     if (!formData.name.trim() || !formData.message.trim()) {
       toast.error("Name and message are required");
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       const response = await fetch('/api/feedback-form', {
         method: 'POST',
@@ -52,19 +64,19 @@ function FeedbackForm() {
         },
         body: JSON.stringify(formData),
       });
-      
+
       const data: SubmitResponse = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.message || 'Something went wrong');
       }
-      
+
       toast.success('Thank you for your feedback!');
       setSuccessMessage('Your feedback has been submitted successfully. We appreciate your input!');
-      
+
       // Reset form
-      setFormData({ name: '', message: '' });
-      
+      setFormData({ name: userName || '', message: '' });
+
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Failed to submit feedback";
       toast.error(errorMessage);
@@ -73,12 +85,12 @@ function FeedbackForm() {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <div className="min-h-screen bg-[#1e1e1e] flex items-center justify-center p-4">
       <div className="w-full max-w-3xl p-8 rounded-lg border border-gray-800 shadow-lg">
         <h1 className="text-3xl font-bold text-white mb-6">Share Your Feedback</h1>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="name" className=" text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
@@ -89,13 +101,14 @@ function FeedbackForm() {
               id="name"
               name="name"
               value={formData.name}
+              readOnly
               onChange={handleChange}
               placeholder="Enter your name"
               className="w-full bg-[#1e1e1e] border-gray-800 text-white focus:border-emerald-400 focus:ring-emerald-400"
               required
             />
           </div>
-          
+
           <div>
             <label htmlFor="message" className=" text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
               <MessageSquare className="w-4 h-4" />
@@ -111,9 +124,9 @@ function FeedbackForm() {
               required
             />
           </div>
-          
-          <Button 
-            type="submit" 
+
+          <Button
+            type="submit"
             disabled={isSubmitting}
             className="w-full flex justify-center items-center py-3 rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50"
           >
@@ -130,14 +143,13 @@ function FeedbackForm() {
             )}
           </Button>
         </form>
-        
+
         {successMessage && (
           <div
-            className={`mt-6 p-4 rounded-md ${
-              successMessage.includes('Failed') 
-                ? 'bg-red-900/50 text-red-200 border border-red-700' 
+            className={`mt-6 p-4 rounded-md ${successMessage.includes('Failed')
+                ? 'bg-red-900/50 text-red-200 border border-red-700'
                 : 'bg-emerald-900/50 text-emerald-200 border border-emerald-700'
-            }`}
+              }`}
           >
             {successMessage}
           </div>

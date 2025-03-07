@@ -39,7 +39,8 @@ function Navbar() {
   useEffect(() => {
     const getCurrentUser = async () => {
       const response = await fetch("/api/user/profile", {
-        method: "GET"
+        method: "GET",
+        cache: "no-store"
       })
       const data = await response.json();
       setCurrentUser(data.user);

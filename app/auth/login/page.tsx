@@ -46,6 +46,9 @@ export default function LoginPage() {
         const sessionData = await response.json()
         setUser(sessionData?.user)
         router.push("/")
+        setTimeout(() => {
+          window.location.reload()
+        }, 1500)
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again.")

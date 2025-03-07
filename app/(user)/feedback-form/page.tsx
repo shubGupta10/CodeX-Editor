@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, User, MessageSquare, Send } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useSession } from 'next-auth/react';
+import { CurrentUser } from '@/types/User';
 
 interface FormData {
   name: string;
@@ -19,14 +20,26 @@ interface SubmitResponse {
 }
 
 function FeedbackForm() {
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const user = useSession();
   const userName = user.data?.user.name;
   const [formData, setFormData] = useState<FormData>({
-    name: userName || "",
+    name: currentUser?.username || "",
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState<string>('');
+
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const response = await fetch("/api/user/profile", {
+        method: "GET"
+      })
+      const data = await response.json();
+      setCurrentUser(data.user);
+    }
+    getCurrentUser();
+  },[])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -37,13 +50,13 @@ function FeedbackForm() {
   };
 
   useEffect(() => {
-    if (userName) {
+    if (currentUser?.username) {
       setFormData(prev => ({
         ...prev,
-        name: userName
+        name: currentUser.username
       }));
     }
-  }, [userName])
+  }, [currentUser?.username])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

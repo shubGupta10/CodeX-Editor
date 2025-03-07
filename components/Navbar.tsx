@@ -15,12 +15,15 @@ import Link from "next/link"
 import useAuthStore from "@/app/store/userAuthStore"
 import { signIn, signOut, useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import { CurrentUser } from "@/types/User"
+
 
 function Navbar() {
   const { data: session } = useSession()
   const { user, setUser, logout } = useAuthStore()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const router = useRouter()
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 
   useEffect(() => {
     if (session?.user) {
@@ -32,6 +35,17 @@ function Navbar() {
       })
     }
   }, [session, setUser])
+
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const response = await fetch("/api/user/profile", {
+        method: "GET"
+      })
+      const data = await response.json();
+      setCurrentUser(data.user);
+    }
+    getCurrentUser();
+  },[])
 
   return (
     <nav className="sticky top-0 z-50 bg-[#1e1e1e] border-b border-gray-800 text-white shadow-md">
@@ -90,7 +104,7 @@ function Navbar() {
                   >
                     <span className="sr-only">Open user menu</span>
                     <div className="flex items-center gap-x-2">
-                      <span className="text-sm">{user?.username}</span>
+                      <span className="text-sm">{currentUser?.username}</span>
                       <div className="h-6 w-6 rounded-full bg-emerald-400/10 p-1 text-emerald-400">
                         <User className="h-4 w-4" />
                       </div>

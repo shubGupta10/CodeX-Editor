@@ -11,3 +11,11 @@ export interface User {
     createdAt: string; 
     updatedAt: string; 
 }
+
+export interface CurrentUser {
+    firstName: string;
+    lastName: string;
+    email: string;
+    username: string
+    provider: string
+  }

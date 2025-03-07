@@ -187,6 +187,14 @@ function Navbar() {
                     >
                       Editor
                     </Link>
+                    <Link
+                      href="/feedback-form"
+                      className="block px-3 py-2 rounded-md text-gray-300 hover:text-white hover:bg-[#252525] transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Feedback
+                    </Link>
+                    
                     
                     {!user ? (
                       <Button

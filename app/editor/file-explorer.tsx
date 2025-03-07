@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, ChevronDown, ChevronRight, FileCode, Folder, FolderOpen, Plus, Search, Trash2Icon, Edit } from "lucide-react";
+import { RefreshCw, ChevronDown, ChevronRight, FileCode, Folder, FolderOpen, Plus, Search, Trash2Icon, Edit, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { 
   Dialog, 
@@ -125,6 +125,11 @@ export default function FileExplorer() {
   const [fileToEdit, setFileToEdit] = useState<FileNode | null>(null);
   const session = useSession();
 
+  // Loading states for operations
+  const [isCreating, setIsCreating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
   const handleCreateFile = async () => {
     if (!fileName.trim()) {
       toast.error("Please enter a file name!");
@@ -132,6 +137,7 @@ export default function FileExplorer() {
     }
 
     try {
+      setIsCreating(true);
       await createFile(fileName);
       toast.success("File created successfully!");
       setIsNewFileModalOpen(false);
@@ -145,6 +151,8 @@ export default function FileExplorer() {
         toast.error("Failed to create file.");
         console.error("Error creating file:", error);
       }
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -152,6 +160,7 @@ export default function FileExplorer() {
     if (!fileToDelete) return;
   
     try {
+      setIsDeleting(true);
       await deleteFile(fileToDelete.name);
       toast.success("File deleted successfully!");
       setIsDeleteModalOpen(false);
@@ -160,6 +169,8 @@ export default function FileExplorer() {
     } catch (error) {
       toast.error("Failed to delete file.");
       console.error("Error deleting file:", error);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -175,6 +186,7 @@ export default function FileExplorer() {
     }
   
     try {
+      setIsEditing(true);
       await editCurrentFile(fileName, fileToEdit.name);
       toast.success(`File renamed to "${fileName}" successfully!`);
       setIsEditModalOpen(false);
@@ -184,6 +196,8 @@ export default function FileExplorer() {
     } catch (error) {
       console.error("Error updating file:", error);
       toast.error("Failed to rename file.");
+    } finally {
+      setIsEditing(false);
     }
   };
 
@@ -227,7 +241,7 @@ export default function FileExplorer() {
   }, [fetchAllFiles]);
 
   return (
-    <div className="h-full flex flex-col bg-[#1e1e1e]">
+    <div className="h-full flex flex-col bg-[#1e1e1e] relative">
       {session.status === 'authenticated' ? (
         <>
           <div className="p-2 border-b border-gray-800 flex justify-between items-center">
@@ -286,6 +300,18 @@ export default function FileExplorer() {
             )}
           </ScrollArea>
 
+          {/* Loading Overlay */}
+          {(isCreating || isDeleting || isEditing) && (
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center z-50">
+              <Loader2 className="w-10 h-10 text-emerald-400 animate-spin mb-3" />
+              <p className="text-white text-sm font-medium">
+                {isCreating && "Creating file..."}
+                {isDeleting && "Deleting file..."}
+                {isEditing && "Updating file..."}
+              </p>
+            </div>
+          )}
+
           {/* Create File Dialog */}
           <Dialog open={isNewFileModalOpen} onOpenChange={setIsNewFileModalOpen}>
             <DialogContent className="bg-[#1e1e1e] text-white border-gray-800">
@@ -300,12 +326,25 @@ export default function FileExplorer() {
                 className="bg-[#252525] border-gray-800 text-white focus:border-emerald-600 focus:ring-emerald-600 focus:ring-opacity-20"
               />
               <DialogFooter>
-                <Button variant="ghost" className="text-gray-300 hover:text-white hover:bg-[#2a2a2a]" onClick={() => setIsNewFileModalOpen(false)}>Cancel</Button>
+                <Button 
+                  variant="ghost" 
+                  className="text-gray-300 hover:text-white hover:bg-[#2a2a2a]" 
+                  onClick={() => setIsNewFileModalOpen(false)}
+                  disabled={isCreating}
+                >
+                  Cancel
+                </Button>
                 <Button 
                   onClick={handleCreateFile}
                   className="bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
+                  disabled={isCreating}
                 >
-                  Create
+                  {isCreating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Creating...
+                    </>
+                  ) : "Create"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -328,12 +367,25 @@ export default function FileExplorer() {
                 className="bg-[#252525] border-gray-800 text-white focus:border-emerald-600 focus:ring-emerald-600 focus:ring-opacity-20"
               />
               <DialogFooter>
-                <Button variant="ghost" className="text-gray-300 hover:text-white hover:bg-[#2a2a2a]" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
+                <Button 
+                  variant="ghost" 
+                  className="text-gray-300 hover:text-white hover:bg-[#2a2a2a]" 
+                  onClick={() => setIsEditModalOpen(false)}
+                  disabled={isEditing}
+                >
+                  Cancel
+                </Button>
                 <Button 
                   onClick={handleEditFile}
                   className="bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
+                  disabled={isEditing}
                 >
-                  Rename
+                  {isEditing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Renaming...
+                    </>
+                  ) : "Rename"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -349,13 +401,26 @@ export default function FileExplorer() {
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
-                <Button variant="ghost" className="text-gray-300 hover:text-white hover:bg-[#2a2a2a]" onClick={() => setIsDeleteModalOpen(false)}>Cancel</Button>
+                <Button 
+                  variant="ghost" 
+                  className="text-gray-300 hover:text-white hover:bg-[#2a2a2a]" 
+                  onClick={() => setIsDeleteModalOpen(false)}
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </Button>
                 <Button 
                   onClick={handleDeleteFile}
                   variant="destructive"
                   className="bg-red-600 hover:bg-red-700 text-white transition-colors"
+                  disabled={isDeleting}
                 >
-                  Delete
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : "Delete"}
                 </Button>
               </DialogFooter>
             </DialogContent>

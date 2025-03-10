@@ -1,6 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
+import GitHubProvider from "next-auth/providers/github";
 import { ConnectoDatabase } from "./db";
 import User from "@/models/UserModel";
 import bcrypt from "bcryptjs";
@@ -27,9 +28,9 @@ export const authOptions: NextAuthOptions = {
                         throw new Error("No user found");
                     }
 
-                    // Check if this is a Google user trying to use credentials
-                    if (user.provider === 'google') {
-                        throw new Error("Please use Google Sign-In for this account");
+                    // Check if this is a social login user trying to use credentials
+                    if (user.provider === 'google' || user.provider === 'github') {
+                        throw new Error(`Please use ${user.provider.charAt(0).toUpperCase() + user.provider.slice(1)} Sign-In for this account`);
                     }
 
                     const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
@@ -60,6 +61,10 @@ export const authOptions: NextAuthOptions = {
                     response_type: "code"
                 }
             }
+        }),
+        GitHubProvider({
+            clientId: process.env.GITHUB_CLIENT_ID as string,
+            clientSecret: process.env.GITHUB_CLIENT_SECRET as string
         })
     ],
 
@@ -84,14 +89,14 @@ export const authOptions: NextAuthOptions = {
                 await ConnectoDatabase();
                 const existingUser = await User.findOne({ email: user.email });
 
-                // For Google Sign In
-                if (account?.provider === 'google') {
+                // For OAuth Sign In (Google or GitHub)
+                if (account?.provider === 'google' || account?.provider === 'github') {
                     if (existingUser) {
                         if (existingUser.provider === 'credentials') {
                             throw new Error("This email is already registered with password. Please use password to login.");
                         }
 
-                        // Update existing Google user
+                        // Update existing OAuth user
                         await User.findByIdAndUpdate(existingUser._id, {
                             firstName: user.name?.split(" ")[0] || "",
                             lastName: user.name?.split(" ")[1] || "",
@@ -99,14 +104,14 @@ export const authOptions: NextAuthOptions = {
                             lastLogin: new Date()
                         });
                     } else {
-                        // Create new Google user
+                        // Create new OAuth user
                         const newUser = new User({
                             firstName: user.name?.split(" ")[0] || "",
                             lastName: user.name?.split(" ")[1] || "",
                             username: user.email?.split("@")[0],
                             email: user.email,
                             profileImage: user.image || "",
-                            provider: 'google',
+                            provider: account.provider,
                             isAdmin: false,
                             lastLogin: new Date()
                         });
@@ -121,8 +126,8 @@ export const authOptions: NextAuthOptions = {
                         throw new Error("No user found with this email");
                     }
 
-                    if (existingUser.provider === 'google') {
-                        throw new Error("This email is registered with Google. Please use Google Sign In.");
+                    if (existingUser.provider === 'google' || existingUser.provider === 'github') {
+                        throw new Error(`This email is registered with ${existingUser.provider.charAt(0).toUpperCase() + existingUser.provider.slice(1)}. Please use ${existingUser.provider.charAt(0).toUpperCase() + existingUser.provider.slice(1)} Sign In.`);
                     }
 
                     // Update last login time

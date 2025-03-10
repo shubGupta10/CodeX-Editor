@@ -27,7 +27,7 @@ const userSchema = new Schema<Users>({
     isAdmin: { type: Boolean, required: true, default: false },
     provider: {
         type: String,
-        enum: ['credentials', 'google'],
+        enum: ['credentials', 'google', "github"],
       },
       lastLogin: {
         type: Date,

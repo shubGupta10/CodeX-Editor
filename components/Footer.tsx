@@ -11,10 +11,20 @@ export function Footer() {
             </h2>
             <p className="text-gray-400 mt-2 text-sm sm:text-base">© 2025 CodeX. All rights reserved.</p>
           </div>
-
-          <div className="w-full md:w-auto flex justify-center md:justify-end gap-6 sm:gap-8 md:gap-10">
-            <a href="/" className="text-gray-400 hover:text-emerald-400 transition-colors text-sm sm:text-base">Home</a>
-            <a href="/editor" className="text-gray-400 hover:text-emerald-400 transition-colors text-sm sm:text-base">Editor</a>
+          <div className="w-full md:w-auto flex flex-col md:flex-row items-center justify-center md:justify-end gap-6 sm:gap-8 md:gap-10">
+            <a href="https://www.producthunt.com/posts/codex-editor?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-codex-editor" target="_blank">
+              <img 
+                src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=940232&theme=light&t=1741681488370" 
+                alt="CodeX-Editor - A web code editor with AI & multi-language support | Product Hunt" 
+                style={{ width: '250px', height: '54px' }} 
+                width="250" 
+                height="54" 
+              />
+            </a>
+            <div className="flex gap-6 sm:gap-8 md:gap-10">
+              <a href="/" className="text-gray-400 hover:text-emerald-400 transition-colors text-sm sm:text-base">Home</a>
+              <a href="/editor" className="text-gray-400 hover:text-emerald-400 transition-colors text-sm sm:text-base">Editor</a>
+            </div>
           </div>
         </div>
       </div>

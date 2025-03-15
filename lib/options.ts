@@ -44,7 +44,9 @@ export const authOptions: NextAuthOptions = {
                         email: user.email,
                         name: `${user.firstName} ${user.lastName}`,
                         image: user.profileImage,
-                        provider: 'credentials'
+                        provider: 'credentials',
+                        isAdmin: user.isAdmin,
+                        lastLogin: user.lastLogin,
                     };
                 } catch (error) {
                     throw error;

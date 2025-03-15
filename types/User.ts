@@ -18,4 +18,5 @@ export interface CurrentUser {
     email: string;
     username: string
     provider: string
+    isAdmin: boolean;
   }

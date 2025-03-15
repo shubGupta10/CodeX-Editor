@@ -31,7 +31,9 @@ function Navbar() {
         id: session.user.id || "",
         username: session.user.name || "",
         email: session.user.email || "",
+        isAdmin: (session.user as any).isAdmin || false,
         profileImage: session.user.image || "",
+        lastLogin: new Date() || "",
       })
     }
   }, [session, setUser])
@@ -46,7 +48,7 @@ function Navbar() {
       setCurrentUser(data.user);
     }
     getCurrentUser();
-  },[])
+  }, [])
 
   return (
     <nav className="sticky top-0 z-50 bg-[#1e1e1e] border-b border-gray-800 text-white shadow-md">
@@ -66,8 +68,8 @@ function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:block">
             <div className="ml-10 flex items-center space-x-6">
-              <Link 
-                href="/" 
+              <Link
+                href="/"
                 className="px-3 py-2 text-gray-300 hover:text-white transition-colors"
               >
                 Home
@@ -90,6 +92,15 @@ function Navbar() {
               >
                 Feedback
               </Link>
+              {user?.isAdmin === true ? <>
+                <Link
+                  href="/admin/fetch-details"
+                  className="px-3 py-2 text-gray-300 hover:text-white transition-colors"
+                >
+                  Admin Details
+                </Link>
+              </> : null}
+
             </div>
           </div>
 
@@ -113,8 +124,8 @@ function Navbar() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48 bg-[#252525] text-white border-gray-800">
-                  <DropdownMenuItem 
-                    onClick={() => router.push("/profile")} 
+                  <DropdownMenuItem
+                    onClick={() => router.push("/profile")}
                     className="hover:bg-[#2a2a2a] hover:text-white focus:bg-[#2a2a2a] focus:text-white cursor-pointer"
                   >
                     <User className="mr-2 h-4 w-4" />
@@ -172,7 +183,7 @@ function Navbar() {
                         <span className="text-emerald-400">X</span>
                       </span>
                     </div>
-                    
+
                     <Link
                       href="/"
                       className="block px-3 py-2 rounded-md text-gray-300 hover:text-white hover:bg-[#252525] transition-colors"
@@ -194,8 +205,17 @@ function Navbar() {
                     >
                       Feedback
                     </Link>
-                    
-                    
+                    {user?.isAdmin === true ? <>
+                      <Link
+                        href="/admin/fetch-details"
+                        className="block px-3 py-2 rounded-md text-gray-300 hover:text-white hover:bg-[#252525] transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Admin Details
+                      </Link></> : null}
+
+
+
                     {!user ? (
                       <Button
                         variant="default"

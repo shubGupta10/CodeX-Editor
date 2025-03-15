@@ -23,7 +23,13 @@ function Navbar() {
   const { user, setUser, logout } = useAuthStore()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const router = useRouter()
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
+  
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [currentUser])
 
   useEffect(() => {
     if (session?.user) {
@@ -44,10 +50,10 @@ function Navbar() {
         method: "GET",
         cache: "no-store"
       })
-      const data = await response.json();
-      setCurrentUser(data.user);
+      const data = await response.json()
+      setCurrentUser(data.user)
     }
-    getCurrentUser();
+    getCurrentUser()
   }, [])
 
   return (
@@ -92,15 +98,15 @@ function Navbar() {
               >
                 Feedback
               </Link>
-              {user?.isAdmin === true ? <>
+              {/* Only render admin link on client side after mounting */}
+              {isMounted && currentUser?.isAdmin === true && (
                 <Link
                   href="/admin/fetch-details"
                   className="px-3 py-2 text-gray-300 hover:text-white transition-colors"
                 >
                   Admin Details
                 </Link>
-              </> : null}
-
+              )}
             </div>
           </div>
 
@@ -116,7 +122,7 @@ function Navbar() {
                   >
                     <span className="sr-only">Open user menu</span>
                     <div className="flex items-center gap-x-2">
-                      <span className="text-sm">{currentUser?.username}</span>
+                      <span className="text-sm">{currentUser?.username || user?.username}</span>
                       <div className="h-6 w-6 rounded-full bg-emerald-400/10 p-1 text-emerald-400">
                         <User className="h-4 w-4" />
                       </div>
@@ -205,16 +211,16 @@ function Navbar() {
                     >
                       Feedback
                     </Link>
-                    {user?.isAdmin === true ? <>
+                    {/* Only render admin link on client side after mounting */}
+                    {isMounted && currentUser?.isAdmin === true && (
                       <Link
                         href="/admin/fetch-details"
                         className="block px-3 py-2 rounded-md text-gray-300 hover:text-white hover:bg-[#252525] transition-colors"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         Admin Details
-                      </Link></> : null}
-
-
+                      </Link>
+                    )}
 
                     {!user ? (
                       <Button

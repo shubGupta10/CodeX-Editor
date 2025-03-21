@@ -5,8 +5,8 @@ import SessionProviderWrapper from "@/components/SessionProviderWrapper";
 import Navbar from "@/components/Navbar";
 import {Toaster} from 'react-hot-toast'
 import { Footer } from "@/components/Footer";
-import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +32,13 @@ export default function RootLayout({
   return (
     <SessionProviderWrapper>
     <html lang="en">
+    <head>
+      <Script
+      src="https://cloud.umami.is/script.js"
+      data-website-id="0856d315-1e69-49ea-bbff-dccf1667554b"
+      strategy="lazyOnload"
+      />
+    </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
@@ -42,7 +49,6 @@ export default function RootLayout({
         />
         {children}
         <SpeedInsights/>
-        <Analytics/>
         <Footer/>
       </body>
     </html>

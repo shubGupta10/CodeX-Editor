@@ -1,10 +1,10 @@
 import { useAIStore } from "@/app/store/useAIStore";
 import React, { useState, useRef, useEffect } from "react";
-import { X, Copy, Check, MessageSquareCode, AlertCircle, ArrowLeft, Eye } from "lucide-react";
+import { X, Copy, Check, MessageSquareCode, AlertCircle, ArrowLeft, Eye, LogIn } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { coldarkDark } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 
 interface CodeProps {
   node?: any;
@@ -61,6 +61,11 @@ function AiButton() {
   }, [showOutputPanel]);
 
   const handleAISuggestion = async () => {
+    if (!session?.user) {
+      await signIn();
+      return;
+    }
+
     if (!userPrompt.trim()) return;
 
     // Check conversation limit
@@ -158,7 +163,6 @@ function AiButton() {
     }
   };
 
-
   const handleCopyCode = (code: string, index: number | string) => {
     navigator.clipboard.writeText(code);
 
@@ -244,21 +248,6 @@ function AiButton() {
 
             {/* Rate Limit Alert */}
             {isDailyLimitExceeded && (
-              <div className="fixed top-4 right-4 z-50 p-4 bg-orange-900 border border-orange-800 rounded flex items-start">
-                <AlertCircle size={16} className="text-orange-400 mt-0.5 mr-2 flex-shrink-0" />
-                <div className="text-sm text-orange-300">
-                  <p className="font-medium">Conversation Limit Reached</p>
-                  {session?.user ? (
-                    <p>You've reached the maximum of 5 AI conversations.</p>
-                  ) : (
-                    <p>Guest users are limited to 2 AI conversations. Please sign in for more.</p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Daily Limit Alert */}
-            {isDailyLimitExceeded && (
               <div className="mb-3 p-2 bg-orange-900 border border-orange-800 rounded flex items-start">
                 <AlertCircle size={16} className="text-orange-400 mt-0.5 mr-2 flex-shrink-0" />
                 <div className="text-sm text-orange-300">
@@ -268,56 +257,86 @@ function AiButton() {
               </div>
             )}
 
-            {/* Input Area */}
-            <div className="mb-3">
-              <textarea
-                value={userPrompt}
-                onChange={(e) => setUserPrompt(e.target.value)}
-                placeholder="Enter your request about the code..."
-                className="w-full p-2 text-sm border border-gray-700 rounded focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-gray-800 text-gray-200 resize-none"
-                rows={3}
-                disabled={isRateLimited || isDailyLimitExceeded}
-              />
-
-              <div className="flex space-x-2 mt-2">
-                <button
-                  onClick={handleAISuggestion}
-                  disabled={isLoading || !userPrompt.trim() || isRateLimited || isDailyLimitExceeded}
-                  className={`flex-1 p-2 text-sm rounded transition ${isLoading || !userPrompt.trim() || isRateLimited || isDailyLimitExceeded
-                      ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                      : 'bg-emerald-500 text-white hover:bg-emerald-600'
-                    }`}
-                >
-                  {isLoading ? "Generating..." :
-                    isRateLimited ? "Rate Limited" :
-                      isDailyLimitExceeded ? "Daily Limit Exceeded" :
-                        "Ask AI"}
-                </button>
-
-                {/* View Previous Response Button */}
-                {hasResponse && (
+            {/* Guest Login Prompt */}
+            {!session?.user && (
+              <div className="mb-3 p-3 bg-[#111827] border border-[#111827] rounded flex items-center">
+                <LogIn size={20} className="text-blue-400 mr-3 flex-shrink-0" />
+                <div className="text-sm text-blue-200">
+                  <p className="font-medium">Login Required</p>
+                  <p className="mb-2">Please sign in to use the AI Code Assistant</p>
                   <button
-                    onClick={openOutputPanel}
-                    className="p-2 rounded bg-gray-800 hover:bg-gray-700 text-emerald-400 border border-emerald-700 transition flex items-center"
-                    title="View Previous Response"
+                    onClick={() => signIn()}
+                    className="px-3 py-1 bg-[#32bd8a] hover:bg-[#32bd8a] text-white rounded text-xs transition"
                   >
-                    <Eye size={18} />
+                    Login
                   </button>
-                )}
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Previous Response Indicator */}
-            {hasResponse && (
-              <div className="text-center mt-2 mb-1">
-                <button
-                  onClick={openOutputPanel}
-                  className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center justify-center w-full"
-                >
-                  <Eye size={12} className="mr-1" />
-                  <span>View previous AI response</span>
-                </button>
-              </div>
+            {/* Input Area - Only show for logged-in users */}
+            {session?.user && (
+              <>
+                <div className="mb-3">
+                  <textarea
+                    value={userPrompt}
+                    onChange={(e) => setUserPrompt(e.target.value)}
+                    placeholder="Enter your request about the code..."
+                    className="w-full p-2 text-sm border border-gray-700 rounded focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-gray-800 text-gray-200 resize-none"
+                    rows={3}
+                    disabled={isRateLimited || isDailyLimitExceeded}
+                  />
+
+                  <div className="flex space-x-2 mt-2">
+                    <button
+                      onClick={handleAISuggestion}
+                      disabled={
+                        isLoading || 
+                        !userPrompt.trim() || 
+                        isRateLimited || 
+                        isDailyLimitExceeded
+                      }
+                      className={`flex-1 p-2 text-sm rounded transition ${
+                        isLoading || 
+                        !userPrompt.trim() || 
+                        isRateLimited || 
+                        isDailyLimitExceeded
+                          ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                          : 'bg-emerald-500 text-white hover:bg-emerald-600'
+                      }`}
+                    >
+                      {isLoading ? "Generating..." :
+                        isRateLimited ? "Rate Limited" :
+                        isDailyLimitExceeded ? "Daily Limit Exceeded" :
+                        "Ask AI"}
+                    </button>
+
+                    {/* View Previous Response Button */}
+                    {hasResponse && (
+                      <button
+                        onClick={openOutputPanel}
+                        className="p-2 rounded bg-gray-800 hover:bg-gray-700 text-emerald-400 border border-emerald-700 transition flex items-center"
+                        title="View Previous Response"
+                      >
+                        <Eye size={18} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Previous Response Indicator */}
+                {hasResponse && (
+                  <div className="text-center mt-2 mb-1">
+                    <button
+                      onClick={openOutputPanel}
+                      className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center justify-center w-full"
+                    >
+                      <Eye size={12} className="mr-1" />
+                      <span>View previous AI response</span>
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

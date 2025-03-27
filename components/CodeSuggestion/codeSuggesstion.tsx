@@ -2,6 +2,17 @@
 
 import { useState, useEffect, useRef, ReactNode, forwardRef, useImperativeHandle } from "react";
 import { Button } from "@/components/ui/button";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from "@/components/ui/alert-dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { LightbulbIcon, XIcon, CheckIcon } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -17,76 +28,45 @@ interface CodeSuggestionProps {
   code: string;
   onApplySuggestion: (suggestion: string) => void;
   editorRef: React.RefObject<any>;
-  isEnabled: boolean; // New prop to control whether suggestions are enabled
+  isEnabled: boolean; 
 }
 
-// Export the interface for the exposed methods
 export interface CodeSuggestionRef {
   forceFetchSuggestions: () => void;
 }
 
-// Use forwardRef to pass a ref from parent to this component
 const CodeSuggestion = forwardRef<CodeSuggestionRef, CodeSuggestionProps>(
   ({ code, onApplySuggestion, editorRef, isEnabled }, ref) => {
     const [suggestions, setSuggestions] = useState("");
     const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(false);
+    const [showLoginAlert, setShowLoginAlert] = useState(false);
     const suggestionsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-    // Force fetch suggestions (for use when the button is clicked)
     const forceFetchSuggestions = () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setShowLoginAlert(true);
+        return;
+      }
+
       if (isEnabled && code && code.trim().length >= 10) {
         fetchCodeSuggestions(code);
       }
     };
 
-    // Expose the forceFetchSuggestions method to parent components
     useImperativeHandle(ref, () => ({
       forceFetchSuggestions
     }));
 
-    useEffect(() => {
-      // Clear any existing timeout when component updates or unmounts
-      if (suggestionsTimeoutRef.current) {
-        clearTimeout(suggestionsTimeoutRef.current);
-      }
-      
-      // Only fetch suggestions if the feature is enabled
-      if (isEnabled && code) {
-        suggestionsTimeoutRef.current = setTimeout(() => {
-          fetchCodeSuggestions(code);
-        }, 600);
-      }
-
-      return () => {
-        if (suggestionsTimeoutRef.current) {
-          clearTimeout(suggestionsTimeoutRef.current);
-        }
-      };
-    }, [code, isEnabled]);
-
-    // Handle toggling the feature off - hide suggestions panel
-    useEffect(() => {
-      if (!isEnabled) {
-        setShowSuggestions(false);
-        // Optionally reset suggestions when disabled
-        // setSuggestions("");
-      }
-    }, [isEnabled]);
-
-    // Auto-scroll to bottom when new suggestions arrive
-    useEffect(() => {
-      if (showSuggestions && scrollAreaRef.current) {
-        const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-        if (scrollContainer) {
-          scrollContainer.scrollTop = scrollContainer.scrollHeight;
-        }
-      }
-    }, [suggestions, showSuggestions]);
-
     const fetchCodeSuggestions = async (code: string) => {
-      // Don't fetch if disabled or code is too short
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setShowLoginAlert(true);
+        return;
+      }
+
       if (!isEnabled || !code || code.trim().length < 10) return;
       
       try {
@@ -94,10 +74,18 @@ const CodeSuggestion = forwardRef<CodeSuggestionRef, CodeSuggestionProps>(
         
         const response = await fetch("/api/ai-helper/code-suggestion", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
           body: JSON.stringify({ codeSnippet: code }),
         });
         
+        if (response.status === 401) {
+          setShowLoginAlert(true);
+          return;
+        }
+
         if (!response.ok) {
           throw new Error("Failed to get suggestions");
         }
@@ -140,6 +128,12 @@ const CodeSuggestion = forwardRef<CodeSuggestionRef, CodeSuggestionProps>(
     };
 
     const applySuggestion = () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setShowLoginAlert(true);
+        return;
+      }
+
       if (editorRef.current && suggestions) {
         const extractedCode = extractCodeFromMarkdown(suggestions);
         onApplySuggestion(extractedCode);
@@ -151,6 +145,25 @@ const CodeSuggestion = forwardRef<CodeSuggestionRef, CodeSuggestionProps>(
 
     return (
       <>
+        {showLoginAlert && (
+          <AlertDialog open={showLoginAlert} onOpenChange={setShowLoginAlert}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Login Required</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Please log in to use AI code suggestions.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => window.location.href = "/auth/login"}>
+                  Login
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+
         {showSuggestions && suggestions && (
           <div className="absolute bottom-4 right-4 w-2/3 max-w-xl bg-[#252525] border border-gray-700 rounded-lg shadow-lg z-20 flex flex-col max-h-[70vh]">
             <div className="flex items-center justify-between bg-[#2d2d2d] px-4 py-3 border-b border-gray-700 rounded-t-lg">
@@ -267,13 +280,10 @@ const CodeSuggestion = forwardRef<CodeSuggestionRef, CodeSuggestionProps>(
   }
 );
 
-// Add display name for better debugging
 CodeSuggestion.displayName = "CodeSuggestion";
 
-// Export the component as default
 export default CodeSuggestion;
 
-// Export a helper function that uses the ref (keeping this for backward compatibility)
 export const forceSuggestionFetch = (ref: React.RefObject<CodeSuggestionRef>) => {
   if (ref.current && typeof ref.current.forceFetchSuggestions === 'function') {
     ref.current.forceFetchSuggestions();

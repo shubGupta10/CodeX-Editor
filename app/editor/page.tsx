@@ -15,8 +15,13 @@ import { Save, Lightbulb, Laptop, Smartphone, XCircle } from "lucide-react";
 import { useAIStore } from "../store/useAIStore";
 import CodeSuggestion from "@/components/CodeSuggestion/codeSuggesstion";
 import { Switch } from "@/components/ui/switch";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function EditorPage() {
+  const router = useRouter();
+  const session = useSession();
+
   const {
     selectedFile,
     fileContent,
@@ -66,7 +71,19 @@ export default function EditorPage() {
     setFileContent(updatedValue);
     setCodeForConversion(updatedValue);
     setCode(updatedValue);
+
+    if (session.status !== 'authenticated' && selectedFile) {
+      const localFiles = JSON.parse(localStorage.getItem('localFiles') || '[]');
+      const updatedFiles = localFiles.map((file: any) => 
+        file.name === selectedFile.name 
+          ? { ...file, content: updatedValue } 
+          : file
+      );
+      localStorage.setItem('localFiles', JSON.stringify(updatedFiles));
+    }
   };
+
+  
 
   const handleSaveFile = async () => {
     try {
@@ -190,7 +207,7 @@ export default function EditorPage() {
         loading={loading || isFileLoading}
         onToggleSidebar={toggleSidebar}
         onSave={handleSaveFile}
-        isDirty={isDirty}
+        isDirty={session.status === 'authenticated' ? isDirty : !!selectedFile?.content}
         fileName={selectedFile?.name}
       />
       <div className="flex-1 flex overflow-hidden">

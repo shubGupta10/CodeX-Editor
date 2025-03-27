@@ -11,7 +11,7 @@ export default withAuth(
         const { pathname } = req.nextUrl;
 
         // ✅ Allow public routes
-        const publicRoutes = ["/", "/auth/login", "/auth/register"];
+        const publicRoutes = ["/", "/auth/login", "/auth/register", "/editor", "/api/execute", "/api/code-converter", ""];
         if (publicRoutes.includes(pathname)) {
           return true;
         }

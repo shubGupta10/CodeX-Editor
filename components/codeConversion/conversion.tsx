@@ -2,11 +2,13 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useAIStore } from "@/app/store/useAIStore";
+import { useSession } from "next-auth/react"; // Import useSession
 import { Code, X, ArrowLeft, Copy, Check, Loader2, RefreshCw, AlertCircle } from "lucide-react";
 import DisplayConvertedResponse from "./displayConvertedResponse";
 
 // Rate limit constants
-const MAX_CONVERSIONS = 5;
+const MAX_LOGGED_IN_CONVERSIONS = 5;
+const MAX_GUEST_CONVERSIONS = 2; // New guest limit
 const RATE_LIMIT_STORAGE_KEY = "code_conversion_rate_limit";
 
 type RateLimitData = {
@@ -15,6 +17,7 @@ type RateLimitData = {
 };
 
 const ConversionCodePanel = () => {
+  const { data: session } = useSession(); // Get session data
   const { codeForConversion } = useAIStore();
   const [sourceLanguage, setSourceLanguage] = useState("");
   const [targetLanguage, setTargetLanguage] = useState("");
@@ -30,6 +33,9 @@ const ConversionCodePanel = () => {
   const panelRef = useRef<HTMLDivElement>(null);
   
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
+
+  // Determine max conversions based on user status
+  const MAX_CONVERSIONS = session?.user ? MAX_LOGGED_IN_CONVERSIONS : MAX_GUEST_CONVERSIONS;
 
   // Check and load rate limit status from localStorage
   useEffect(() => {
@@ -77,7 +83,7 @@ const ConversionCodePanel = () => {
     // Update time remaining every minute
     const intervalId = setInterval(checkRateLimit, 60000);
     return () => clearInterval(intervalId);
-  }, []);
+  }, [MAX_CONVERSIONS]);
 
   // Update button position when the panel opens
   useEffect(() => {
@@ -160,10 +166,19 @@ const ConversionCodePanel = () => {
       });
 
       if (response.status === 429) {
+        const errorData = await response.json();
         // Handle 429 Too Many Requests - Rate limit exceeded
         incrementUsageCount(); // Ensure count is updated locally
         setRateLimited(true);
-        throw new Error(`Rate limit exceeded. You can make ${MAX_CONVERSIONS} conversions every 24 hours. Please try again in ${timeUntilReset}.`);
+        
+        // If sign-in is required, update error message
+        if (errorData.requiresSignIn) {
+          setError(`Guest user limit reached. Please sign in for more conversions.`);
+        } else {
+          setError(`Rate limit exceeded. You can make ${MAX_CONVERSIONS} conversions every 24 hours. Please try again in ${timeUntilReset}.`);
+        }
+        
+        throw new Error(errorData.message);
       }
 
       if (!response.ok) {
@@ -264,7 +279,21 @@ const ConversionCodePanel = () => {
                 <AlertCircle size={16} className="mr-2 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-medium">Rate limit exceeded</p>
-                  <p className="mt-1">You've reached the maximum of {MAX_CONVERSIONS} conversions in 24 hours. Try again in {timeUntilReset}.</p>
+                  <p className="mt-1">
+                    {session?.user 
+                      ? `You've reached the maximum of ${MAX_CONVERSIONS} conversions in 24 hours.` 
+                      : `Guest users are limited to ${MAX_CONVERSIONS} conversions. Please sign in for more.`
+                    } 
+                    Try again in {timeUntilReset}.
+                  </p>
+                  {!session?.user && (
+                    <button 
+                      onClick={() => {/* Add sign-in logic */}}
+                      className="mt-2 px-3 py-1 bg-emerald-500 text-white rounded text-xs"
+                    >
+                      Sign In
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -425,13 +454,24 @@ const ConversionCodePanel = () => {
                       <AlertCircle size={40} className="text-red-400 mx-auto mb-3" />
                       <h3 className="text-xl font-semibold text-red-400 mb-2">Rate Limit Exceeded</h3>
                       <p className="text-gray-300 mb-3">
-                        You've reached the maximum of {MAX_CONVERSIONS} code conversions in a 24-hour period.
+                        {session?.user 
+                          ? `You've reached the maximum of ${MAX_CONVERSIONS} code conversions in a 24-hour period.`
+                          : `Guest users are limited to ${MAX_CONVERSIONS} code conversions. Please sign in for more.`
+                        }
                       </p>
                       <div className="bg-gray-800 rounded-lg p-3 mb-3">
                         <p className="text-sm text-gray-400 mb-1">Time until reset:</p>
                         <p className="text-xl font-mono text-red-400">{timeUntilReset}</p>
                       </div>
-                      <p className="text-sm text-gray-400">
+                      {!session?.user && (
+                        <button 
+                          onClick={() => {/* Add sign-in logic */}}
+                          className="mt-2 px-4 py-2 bg-emerald-500 text-white rounded hover:bg-emerald-600 transition"
+                        >
+                          Sign In
+                        </button>
+                      )}
+                      <p className="text-sm text-gray-400 mt-3">
                         Please try again later. Your conversion limit will reset after the cooling period.
                       </p>
                     </div>

@@ -4,15 +4,17 @@ import { X, Copy, Check, MessageSquareCode, AlertCircle, ArrowLeft, Eye } from "
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { coldarkDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { useSession } from "next-auth/react";
 
 interface CodeProps {
-    node?: any;
-    inline?: boolean;
-    className?: string;
-    children?: React.ReactNode;
+  node?: any;
+  inline?: boolean;
+  className?: string;
+  children?: React.ReactNode;
 }
 
 function AiButton() {
+  const { data: session } = useSession();
   const { code } = useAIStore();
   const [userPrompt, setUserPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -23,6 +25,7 @@ function AiButton() {
   const [error, setError] = useState<string | null>(null);
   const [isRateLimited, setIsRateLimited] = useState(false);
   const [isDailyLimitExceeded, setIsDailyLimitExceeded] = useState(false);
+  const [conversationCount, setConversationCount] = useState(0);
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
   const panelRef = useRef<HTMLDivElement>(null);
   const outputPanelRef = useRef<HTMLDivElement>(null);
@@ -30,12 +33,15 @@ function AiButton() {
 
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
 
+  // Determine max conversations based on user status
+  const MAX_CONVERSATIONS = session?.user ? 5 : 2;
+
   useEffect(() => {
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
-      setButtonPosition({ 
-        x: rect.left, 
-        y: rect.top 
+      setButtonPosition({
+        x: rect.left,
+        y: rect.top
       });
     }
   }, [isOpen]);
@@ -43,9 +49,9 @@ function AiButton() {
   // Close the panel when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(event.target as Node) && 
-          buttonRef.current && !buttonRef.current.contains(event.target as Node) &&
-          !showOutputPanel) {
+      if (panelRef.current && !panelRef.current.contains(event.target as Node) &&
+        buttonRef.current && !buttonRef.current.contains(event.target as Node) &&
+        !showOutputPanel) {
         setIsOpen(false);
       }
     };
@@ -56,12 +62,17 @@ function AiButton() {
 
   const handleAISuggestion = async () => {
     if (!userPrompt.trim()) return;
-    
+
+    // Check conversation limit
+    if (conversationCount >= MAX_CONVERSATIONS) {
+      setIsDailyLimitExceeded(true);
+      return;
+    }
+
     setIsLoading(true);
     setAiResponse("");
     setError(null);
     setIsRateLimited(false);
-    setIsDailyLimitExceeded(false);
     setShowOutputPanel(true);
 
     try {
@@ -73,18 +84,22 @@ function AiButton() {
       const response = await fetch("/api/ai-helper/code-assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: code, prompt: userPrompt }),
+        body: JSON.stringify({
+          code: code,
+          prompt: userPrompt,
+          isGuest: !session?.user
+        }),
       });
 
       // Check for rate limits
       if (response.status === 429) {
         const errorData = await response.json().catch(() => null);
         const errorMessage = errorData?.message || "Rate limit exceeded.";
-        
-        // Check if this is the daily limit (30 requests per day)
-        if (errorMessage.includes("daily limit") || errorMessage.includes("30")) {
+
+        // Check if this is the daily limit
+        if (errorMessage.includes("daily limit") || errorMessage.includes("limit")) {
           setIsDailyLimitExceeded(true);
-          throw new Error("You have exceeded the daily limit of AI requests (30). Please try again tomorrow.");
+          throw new Error(errorMessage);
         } else {
           // This is the hourly rate limit
           setIsRateLimited(true);
@@ -117,7 +132,6 @@ function AiButton() {
       } catch (streamError) {
         console.error("Streaming error:", streamError);
         if (fullResponse) {
-          // If we already received some data, keep it but log the error
           console.warn("Stream ended unexpectedly, but partial response available");
         } else {
           throw new Error("Failed while reading response stream");
@@ -130,7 +144,10 @@ function AiButton() {
         fullResponse += finalChunk;
         setAiResponse(fullResponse);
       }
-      
+
+      // Increment conversation count
+      setConversationCount(prev => prev + 1);
+
       // Set flag indicating we have a response to view
       setHasResponse(true);
     } catch (error: any) {
@@ -141,11 +158,12 @@ function AiButton() {
     }
   };
 
+
   const handleCopyCode = (code: string, index: number | string) => {
     navigator.clipboard.writeText(code);
-    
+
     setCopiedStates(prev => ({ ...prev, [index]: true }));
-    
+
     setTimeout(() => {
       setCopiedStates(prev => ({ ...prev, [index]: false }));
     }, 2000);
@@ -154,7 +172,7 @@ function AiButton() {
   const closeOutputPanel = () => {
     setShowOutputPanel(false);
   };
-  
+
   const openOutputPanel = () => {
     setShowOutputPanel(true);
   };
@@ -162,10 +180,10 @@ function AiButton() {
   // Fix for the "p is descendant" issue - this function checks if a node is a block element
   const isBlockElement = (child: React.ReactNode): boolean => {
     if (!React.isValidElement(child)) return false;
-    
+
     const element = child as React.ReactElement;
     const elementType = element.type as any;
-    
+
     // Get the type name correctly
     let typeName: string;
     if (typeof elementType === 'string') {
@@ -175,7 +193,7 @@ function AiButton() {
     } else {
       return false;
     }
-    
+
     // Check if it's a block element
     return ['div', 'pre', 'table', 'ul', 'ol', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(typeName);
   };
@@ -200,7 +218,7 @@ function AiButton() {
 
       {/* AI Assistant Input Panel */}
       {isOpen && !showOutputPanel && (
-        <div 
+        <div
           ref={panelRef}
           className="fixed shadow-lg rounded-lg bg-gray-900 border border-gray-800"
           style={{
@@ -225,12 +243,16 @@ function AiButton() {
             </div>
 
             {/* Rate Limit Alert */}
-            {isRateLimited && (
-              <div className="mb-3 p-2 bg-yellow-900 border border-yellow-800 rounded flex items-start">
-                <AlertCircle size={16} className="text-yellow-400 mt-0.5 mr-2 flex-shrink-0" />
-                <div className="text-sm text-yellow-300">
-                  <p className="font-medium">Rate limit exceeded</p>
-                  <p>You've reached your hourly limit. Please try again after 1 hour.</p>
+            {isDailyLimitExceeded && (
+              <div className="fixed top-4 right-4 z-50 p-4 bg-orange-900 border border-orange-800 rounded flex items-start">
+                <AlertCircle size={16} className="text-orange-400 mt-0.5 mr-2 flex-shrink-0" />
+                <div className="text-sm text-orange-300">
+                  <p className="font-medium">Conversation Limit Reached</p>
+                  {session?.user ? (
+                    <p>You've reached the maximum of 5 AI conversations.</p>
+                  ) : (
+                    <p>Guest users are limited to 2 AI conversations. Please sign in for more.</p>
+                  )}
                 </div>
               </div>
             )}
@@ -256,23 +278,22 @@ function AiButton() {
                 rows={3}
                 disabled={isRateLimited || isDailyLimitExceeded}
               />
-              
+
               <div className="flex space-x-2 mt-2">
                 <button
                   onClick={handleAISuggestion}
                   disabled={isLoading || !userPrompt.trim() || isRateLimited || isDailyLimitExceeded}
-                  className={`flex-1 p-2 text-sm rounded transition ${
-                    isLoading || !userPrompt.trim() || isRateLimited || isDailyLimitExceeded
-                      ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
+                  className={`flex-1 p-2 text-sm rounded transition ${isLoading || !userPrompt.trim() || isRateLimited || isDailyLimitExceeded
+                      ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
                       : 'bg-emerald-500 text-white hover:bg-emerald-600'
-                  }`}
+                    }`}
                 >
-                  {isLoading ? "Generating..." : 
-                  isRateLimited ? "Rate Limited" : 
-                  isDailyLimitExceeded ? "Daily Limit Exceeded" : 
-                  "Ask AI"}
+                  {isLoading ? "Generating..." :
+                    isRateLimited ? "Rate Limited" :
+                      isDailyLimitExceeded ? "Daily Limit Exceeded" :
+                        "Ask AI"}
                 </button>
-                
+
                 {/* View Previous Response Button */}
                 {hasResponse && (
                   <button
@@ -285,7 +306,7 @@ function AiButton() {
                 )}
               </div>
             </div>
-            
+
             {/* Previous Response Indicator */}
             {hasResponse && (
               <div className="text-center mt-2 mb-1">
@@ -304,7 +325,7 @@ function AiButton() {
 
       {/* AI Output Panel (Separate full-screen panel) */}
       {showOutputPanel && (
-        <div 
+        <div
           ref={outputPanelRef}
           className="fixed inset-0 bg-gray-900 bg-opacity-95 flex items-center justify-center z-50"
         >
@@ -327,7 +348,7 @@ function AiButton() {
                 </span>
               </div>
             </div>
-            
+
             {/* Content area */}
             <div className="flex-1 p-6 overflow-y-auto">
               <div className="p-4 rounded-lg bg-gray-800 border border-gray-700 shadow-inner">
@@ -346,7 +367,7 @@ function AiButton() {
                         code({ node, inline, className, children, ...props }: CodeProps) {
                           const match = /language-(\w+)/.exec(className || '');
                           const codeString = String(children).replace(/\n$/, '');
-                          
+
                           // For inline code, just return a simple code tag without divs
                           if (inline) {
                             return (
@@ -355,11 +376,11 @@ function AiButton() {
                               </code>
                             );
                           }
-                          
+
                           // For code blocks (not inline)
                           const language = match ? match[1] : 'text';
                           const codeIndex = `block-${Object.keys(copiedStates).length}`;
-                          
+
                           return (
                             <div className="relative rounded-lg overflow-hidden my-4 border border-gray-700">
                               <div className="flex justify-between items-center py-2 px-3 bg-gray-700 text-gray-200 text-xs">
@@ -394,8 +415,8 @@ function AiButton() {
                         // Fixed p component to properly handle block elements
                         p({ children }) {
                           // If children contain block elements, render as fragment
-                          return containsBlockElements(children) ? 
-                            <>{children}</> : 
+                          return containsBlockElements(children) ?
+                            <>{children}</> :
                             <p className="my-3 leading-relaxed">{children}</p>;
                         },
                         ul({ children }) {
@@ -405,8 +426,8 @@ function AiButton() {
                           return <ol className="list-decimal pl-5 my-4 space-y-1">{children}</ol>;
                         },
                         li({ children }) {
-                          return containsBlockElements(children) ? 
-                            <li className="mb-2"><>{children}</></li> : 
+                          return containsBlockElements(children) ?
+                            <li className="mb-2"><>{children}</></li> :
                             <li className="mb-2">{children}</li>;
                         },
                         h1({ children }) {
@@ -419,7 +440,7 @@ function AiButton() {
                           return <h3 className="text-md font-bold my-3 text-emerald-300">{children}</h3>;
                         },
                         pre({ children }) {
-                          return <>{children}</>; 
+                          return <>{children}</>;
                         }
                       }}
                     >
@@ -433,7 +454,7 @@ function AiButton() {
                 )}
               </div>
             </div>
-            
+
             {/* Footer */}
             <div className="p-4 border-t border-gray-800 flex justify-between">
               <button

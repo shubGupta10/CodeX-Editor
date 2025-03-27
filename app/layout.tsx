@@ -7,6 +7,8 @@ import {Toaster} from 'react-hot-toast'
 import { Footer } from "@/components/Footer";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import Script from "next/script";
+import { Analytics } from "@vercel/analytics/react";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,6 +49,7 @@ export default function RootLayout({
           position="top-center"
           reverseOrder={false}
         />
+        <Analytics/>
         {children}
         <SpeedInsights/>
         <Footer/>

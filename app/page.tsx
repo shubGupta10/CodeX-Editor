@@ -139,7 +139,7 @@ function HeroSection() {
           </div>
           <div className="pt-10">
             <VideoPlayer
-              src="https://res.cloudinary.com/dkp6hsvoy/video/upload/v1741006974/iie9bysa6ykg51fk8ior.mp4"
+              src="https://res.cloudinary.com/dnih6mdkd/video/upload/v1744716480/editorMain_compressed_nbg8p4.mp4"
               fallbackImage="https://res.cloudinary.com/dkp6hsvoy/image/upload/v1741011264/codex-images/sicmrhfqdj0l4cemawiq.png"
               className="relative z-20 rounded-xl w-full h-full object-contain"
             />
@@ -175,7 +175,7 @@ function AboutSection() {
           {/* Increased video size for mobile */}
           <div className="w-full h-auto">
             <VideoPlayer
-              src="https://res.cloudinary.com/dkp6hsvoy/video/upload/v1741006974/iie9bysa6ykg51fk8ior.mp4"
+              src="https://res.cloudinary.com/dnih6mdkd/video/upload/v1744716480/editorMain_compressed_nbg8p4.mp4"
               fallbackImage="https://res.cloudinary.com/dkp6hsvoy/image/upload/v1741011264/codex-images/sicmrhfqdj0l4cemawiq.png"
               className="relative z-20 rounded-xl w-full h-full object-cover"
             />
@@ -318,7 +318,7 @@ function CodeConverterFeature() {
           <div className="absolute -inset-6 bg-emerald-500/20 rounded-2xl blur-xl"></div>
           <div className="relative overflow-hidden rounded-xl border border-gray-800 shadow-2xl">
             <VideoPlayer
-              src="https://res.cloudinary.com/dkp6hsvoy/video/upload/v1741008565/codeConverterNewVideo664654656_vckobr.mp4"
+              src="https://res.cloudinary.com/dnih6mdkd/video/upload/v1744716374/codeConverterNewVideo664654656_tkk4cj.mp4"
               fallbackImage="https://res.cloudinary.com/dkp6hsvoy/image/upload/v1741011263/codex-images/gcbcc5dapgmq7rhwnv5l.png"
               className="bg-emerald-500 w-full h-auto object-cover"
             />
@@ -425,7 +425,7 @@ function AICodeAssistantFeature() {
           <div className="absolute -inset-6 bg-emerald-500/20 rounded-2xl blur-xl"></div>
           <div className="relative overflow-hidden rounded-xl border border-gray-800 shadow-2xl">
             <VideoPlayer
-              src="https://res.cloudinary.com/dkp6hsvoy/video/upload/v1741006806/u80sbe8yvs7mqe3i56hc.mp4"
+              src="https://res.cloudinary.com/dnih6mdkd/video/upload/v1744716110/AIassistant_esvuq9.mp4"
               fallbackImage="https://res.cloudinary.com/dkp6hsvoy/image/upload/v1741011263/codex-images/qqmhkm8psuu7e1gmwtdp.png"
               className="bg-emerald-500 w-full h-auto aspect-video"
             />
@@ -446,7 +446,7 @@ function CodeSuggestionFeature() {
           <div className="absolute -inset-6 bg-emerald-500/20 rounded-2xl blur-xl"></div>
           <div className="relative overflow-hidden rounded-xl border border-gray-800 shadow-2xl">
             <VideoPlayer
-              src="https://res.cloudinary.com/dkp6hsvoy/video/upload/v1741006801/kwnwulnclj17ob76zpoh.mp4"
+              src="https://res.cloudinary.com/dnih6mdkd/video/upload/v1744716284/aiSuggestion_tm1lrq.mp4"
               fallbackImage="https://res.cloudinary.com/dkp6hsvoy/image/upload/v1741011263/codex-images/dsgf0npbuax4tujqk8yw.png"
               className="bg-emerald-500 w-full h-auto aspect-video object-cover"
             />

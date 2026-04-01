@@ -106,7 +106,22 @@ export default function EditorPage() {
     }
   };
 
+  const GUEST_EXECUTION_LIMIT = 1;
+
   const runCode = async () => {
+    // Guest execution limit — allow 1 free run, then prompt login
+    if (session.status !== 'authenticated') {
+      const guestRuns = parseInt(localStorage.getItem('guestExecutionCount') || '0', 10);
+      if (guestRuns >= GUEST_EXECUTION_LIMIT) {
+        toast.error("Sign in to continue running code");
+        setOutput("🔒 Free execution limit reached.\n\nSign in to get unlimited code executions.");
+        setStatus("error");
+        return;
+      }
+      // Increment guest run count
+      localStorage.setItem('guestExecutionCount', String(guestRuns + 1));
+    }
+
     setLoading(true);
     setOutput("Running...");
     setStatus("idle");

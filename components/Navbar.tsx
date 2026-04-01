@@ -26,6 +26,8 @@ function Navbar() {
   const pathname = usePathname()
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
   const [isMounted, setIsMounted] = useState(false)
+  const [isHidden, setIsHidden] = useState(false)
+  const [lastScrollY, setLastScrollY] = useState(0)
 
   // Hydration safety — only render dynamic content after mount
   useEffect(() => {
@@ -46,19 +48,34 @@ function Navbar() {
   }, [session, setUser])
 
   useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY && currentScrollY > 150) {
+        setIsHidden(true);
+      } else {
+        setIsHidden(false);
+      }
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
+
+  useEffect(() => {
     const getCurrentUser = async () => {
       if (!session?.user) return;
       try {
         const response = await fetch("/api/user/profile", {
           method: "GET",
-          cache: "no-store"
+          cache: "no-store",
         })
         if (response.ok) {
           const data = await response.json()
           setCurrentUser(data.user)
         }
       } catch (error) {
-        console.error("Failed to fetch user profile:", error);
+        console.error("Failed to fetch user profile:", error)
       }
     }
     getCurrentUser()
@@ -70,9 +87,9 @@ function Navbar() {
   // Prevent hydration mismatch — render skeleton until mounted
   if (!isMounted) {
     return (
-      <nav className="sticky top-0 z-50 bg-[#1e1e1e] border-b border-gray-800 text-white shadow-md">
-        <div className="container mx-auto">
-          <div className="flex items-center justify-between h-14 px-4 md:px-6 lg:px-8">
+      <nav className="sticky top-0 z-50 bg-[#1e1e1e] border-b border-gray-800 text-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
             <div className="flex items-center">
               <Link href="/" className="flex items-center space-x-2 hover:text-white">
                 <Code className="h-5 w-5 text-emerald-400" />
@@ -89,14 +106,16 @@ function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 bg-[#1e1e1e] border-b border-gray-800 text-white shadow-md">
-      <div className="container mx-auto">
-        <div className="flex items-center justify-between h-14 px-4 md:px-6 lg:px-8">
+    <nav className={`sticky top-0 z-50 bg-[#1e1e1e] border-b border-gray-800 text-white transition-transform duration-300 ${
+      isHidden ? "-translate-y-full" : "translate-y-0"
+    }`}>
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-2 hover:text-white">
-              <Code className="h-5 w-5 text-emerald-400" />
-              <span className="text-xl font-bold">
+            <Link href="/" className="flex items-center space-x-2 group">
+              <Code className="h-6 w-6 text-emerald-400 group-hover:scale-110 transition-transform" />
+              <span className="text-2xl font-bold tracking-tight">
                 <span className="text-white">Code</span>
                 <span className="text-emerald-400">X</span>
               </span>
@@ -115,11 +134,10 @@ function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
-                    pathname === link.href
-                      ? "text-emerald-400 bg-emerald-400/10"
-                      : "text-gray-400 hover:text-white hover:bg-[#252525]"
-                  }`}
+                  className={`px-4 py-2 rounded-md text-[15px] font-medium transition-colors ${pathname === link.href
+                      ? "text-white"
+                      : "text-gray-400 hover:text-gray-200"
+                    }`}
                 >
                   {link.label}
                 </Link>
@@ -127,11 +145,10 @@ function Navbar() {
               {currentUser?.isAdmin === true && (
                 <Link
                   href="/admin/fetch-details"
-                  className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
-                    pathname === "/admin/fetch-details"
-                      ? "text-emerald-400 bg-emerald-400/10"
-                      : "text-gray-400 hover:text-white hover:bg-[#252525]"
-                  }`}
+                  className={`px-4 py-2 rounded-md text-[15px] font-medium transition-colors ${pathname === "/admin/fetch-details"
+                      ? "text-white"
+                      : "text-gray-400 hover:text-gray-200"
+                    }`}
                 >
                   Admin
                 </Link>
@@ -146,14 +163,13 @@ function Navbar() {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    size="sm"
-                    className="relative rounded-md bg-[#252525] border border-gray-700 text-white hover:bg-[#2a2a2a] hover:text-white hover:border-emerald-500/50 transition-all h-8"
+                    className="relative rounded-md bg-[#252525] border border-gray-800 text-white hover:bg-[#2a2a2a] hover:text-white hover:border-emerald-500/30 transition-all h-10 px-4"
                   >
                     <span className="sr-only">Open user menu</span>
-                    <div className="flex items-center gap-x-2">
-                      <span className="text-sm">{currentUser?.username || user?.username}</span>
-                      <div className="h-5 w-5 rounded-full bg-emerald-400/10 flex items-center justify-center text-emerald-400">
-                        <User className="h-3 w-3" />
+                    <div className="flex items-center gap-x-3">
+                      <span className="text-[15px] font-medium">{currentUser?.username || user?.username}</span>
+                      <div className="h-6 w-6 rounded-full bg-emerald-400/10 flex items-center justify-center text-emerald-400">
+                        <User className="h-3.5 w-3.5" />
                       </div>
                     </div>
                   </Button>
@@ -182,8 +198,7 @@ function Navbar() {
             ) : (
               <Button
                 variant="default"
-                size="sm"
-                className="hidden md:flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white transition-colors h-8"
+                className="hidden md:flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white transition-all h-10 px-6 text-[15px] font-semibold rounded-lg shadow-lg shadow-emerald-500/10 active:scale-95"
                 onClick={() => router.push("/auth/login")}
               >
                 Try CodeX
@@ -227,11 +242,10 @@ function Navbar() {
                       <Link
                         key={link.href}
                         href={link.href}
-                        className={`block px-3 py-2 rounded-md text-sm transition-colors ${
-                          pathname === link.href
-                            ? "text-emerald-400 bg-emerald-400/10"
-                            : "text-gray-300 hover:text-white hover:bg-[#252525]"
-                        }`}
+                        className={`block px-3 py-3 rounded-md text-base transition-colors ${pathname === link.href
+                            ? "text-white font-medium pl-4 border-l-2 border-emerald-500"
+                            : "text-gray-400 hover:text-gray-200 pl-4 border-l-2 border-transparent"
+                          }`}
                         onClick={() => setIsMenuOpen(false)}
                       >
                         {link.label}
@@ -240,7 +254,7 @@ function Navbar() {
                     {currentUser?.isAdmin === true && (
                       <Link
                         href="/admin/fetch-details"
-                        className="block px-3 py-2 rounded-md text-sm text-gray-300 hover:text-white hover:bg-[#252525] transition-colors"
+                        className="block px-3 py-3 rounded-md text-base text-gray-300 hover:text-white hover:bg-[#252525] transition-colors pl-4"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         Admin
@@ -250,8 +264,7 @@ function Navbar() {
                     {!user ? (
                       <Button
                         variant="default"
-                        size="sm"
-                        className="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white"
+                        className="w-full mt-8 bg-emerald-600 hover:bg-emerald-500 text-white h-12 text-[15px] font-semibold rounded-lg transition-all active:scale-[0.98]"
                         onClick={() => {
                           router.push("/auth/login")
                           setIsMenuOpen(false)
@@ -262,15 +275,14 @@ function Navbar() {
                     ) : (
                       <Button
                         variant="outline"
-                        size="sm"
-                        className="w-full mt-6 border-gray-700 text-red-400 hover:bg-[#252525] hover:text-white"
+                        className="w-full mt-6 border-gray-700 text-red-400 hover:bg-[#252525] hover:text-white h-12 text-[15px] font-medium rounded-lg"
                         onClick={() => {
                           signOut()
                           logout()
                           setIsMenuOpen(false)
                         }}
                       >
-                        <LogOut className="mr-2 h-4 w-4" />
+                        <LogOut className="mr-2 h-5 w-5" />
                         Logout
                       </Button>
                     )}

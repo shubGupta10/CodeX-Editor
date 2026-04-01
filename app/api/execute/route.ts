@@ -1,12 +1,13 @@
 import { rateLimit } from "@/lib/ratelimit";
 import { NextResponse } from "next/server";
 
-const PISTON_API_URL = "https://emkc.org/api/v2/piston/execute";
+const ONECOMPILER_API_URL = "https://api.onecompiler.com/v1/run";
+const MAX_CODE_LENGTH = 50_000; // 50KB max code size
 
-// Piston language aliases
-const languageMappingPiston: Record<string, string> = {
+// OneCompiler language names
+const languageMapping: Record<string, string> = {
   python: "python",
-  javascript: "javascript",
+  javascript: "nodejs",
   typescript: "typescript",
   java: "java",
   c: "c",
@@ -15,48 +16,63 @@ const languageMappingPiston: Record<string, string> = {
 
 export async function POST(req: Request) {
   try {
-    const ip = req.headers.get("x-forward-for") || "127.0.0.1";
+    const apiKey = process.env.ONECOMPILER_API_KEY;
+    if (!apiKey) {
+      console.error("ONECOMPILER_API_KEY is not configured");
+      return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
+    }
+
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
     const rateLimitResult = await rateLimit(ip);
 
     if (!rateLimitResult.success) {
       return NextResponse.json({ error: rateLimitResult.message }, { status: 429 });
     }
+
     const { code, language } = await req.json();
 
     if (!code || !language) {
       return NextResponse.json({ error: "Code and language are required" }, { status: 400 });
     }
 
-    const pistonLanguage = languageMappingPiston[language];
+    if (typeof code !== "string" || code.length > MAX_CODE_LENGTH) {
+      return NextResponse.json({ error: `Code must be a string under ${MAX_CODE_LENGTH} characters` }, { status: 400 });
+    }
 
-    if (!pistonLanguage) {
+    const compilerLanguage = languageMapping[language];
+
+    if (!compilerLanguage) {
       return NextResponse.json({ error: "Unsupported language" }, { status: 400 });
     }
 
-    const pistonResponse = await fetch(PISTON_API_URL, {
+    const response = await fetch(ONECOMPILER_API_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": apiKey,
+      },
       body: JSON.stringify({
-        language: pistonLanguage,
-        version: "*", // Latest version
-        files: [{ name: "code", content: code }],
+        language: compilerLanguage,
         stdin: "",
-        args: [],
-        compile_timeout: 10000,
-        run_timeout: 3000,
-        compile_memory_limit: -1,
-        run_memory_limit: -1,
+        files: [{ name: "code", content: code }],
       }),
     });
 
-    const result = await pistonResponse.json();
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("OneCompiler API error:", response.status, errorText);
+      return NextResponse.json({ error: "Code execution failed" }, { status: 502 });
+    }
+
+    const result = await response.json();
 
     return NextResponse.json({
-      output: result.run.stdout || "",
-      error: result.run.stderr || "",
+      output: result.stdout || "",
+      error: result.stderr || "",
       remainingRequests: rateLimitResult.remaining,
     });
   } catch (error) {
+    console.error("Execute API error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

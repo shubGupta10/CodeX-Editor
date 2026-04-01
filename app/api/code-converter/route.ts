@@ -36,18 +36,18 @@ export async function POST(req: NextRequest) {
             }, { status: 429 });
         }
 
-        // If logged-in user, check MongoDB limits
+        // If logged-in user, check and increment MongoDB limits atomically
         if (userId) {
-            // Fetch user limits from MongoDB
-            let userLimit = await UserLimitModel.findOne({ userId });
-
-            if (!userLimit) {
-                userLimit = await UserLimitModel.create({
-                    userId,
-                    conversionCount: 0,
-                    conversionLimit: REQUEST_LIMIT_LOGGED_IN,
-                });
-            }
+            const userLimit = await UserLimitModel.findOneAndUpdate(
+                { userId },
+                {
+                    $setOnInsert: {
+                        conversionLimit: REQUEST_LIMIT_LOGGED_IN,
+                        conversionResetAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+                    },
+                },
+                { upsert: true, new: true }
+            );
 
             // Reset daily limits if time has passed
             if (new Date() > userLimit.conversionResetAt) {
@@ -63,20 +63,15 @@ export async function POST(req: NextRequest) {
                     requiresSignIn: false 
                 }, { status: 429 });
             }
+
+            // Increment count
+            userLimit.conversionCount += 1;
+            await userLimit.save();
         }
 
         // Increment request count in Redis
         await redis.incr(userKey);
         await redis.expire(userKey, TIME_LIMIT);
-
-        // If logged-in user, increment MongoDB count
-        if (userId) {
-            const userLimit = await UserLimitModel.findOne({ userId });
-            if (userLimit) {
-                userLimit.conversionCount += 1;
-                await userLimit.save();
-            }
-        }
 
         const { codeSnippet, sourceLanguage, targetLanguage } = await req.json();
         if (!codeSnippet || !sourceLanguage || !targetLanguage) {

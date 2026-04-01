@@ -3,6 +3,7 @@ import { createFile } from "@/Supabase/supabaseFunctions";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/options";
 import UserLimitModel from "@/models/User_limit";
+import { bustCache, cacheKeys } from "@/lib/cache";
 
 const DEFAULT_MAX_FILES = 5;
 
@@ -35,6 +36,9 @@ export async function POST(req: NextRequest) {
     //increment after fileURL
     userLimit.fileCount += 1;
     await userLimit.save();
+
+    // Bust file list cache
+    await bustCache(cacheKeys.fileList(userId));
 
     return NextResponse.json({ message: "File created successfully!", fileUrl }, { status: 200 });
   } catch (error) {

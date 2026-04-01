@@ -1,4 +1,4 @@
-import { useAIStore } from "@/app/store/useAIStore";
+import useFileStore from "@/app/store/useFileStore";
 import React, { useState, useRef, useEffect } from "react";
 import { X, Copy, Check, MessageSquareCode, AlertCircle, ArrowLeft, Eye, LogIn } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -15,7 +15,7 @@ interface CodeProps {
 
 function AiButton() {
   const { data: session } = useSession();
-  const { code } = useAIStore();
+  const code = useFileStore((s) => s.fileContent);
   const [userPrompt, setUserPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState("");

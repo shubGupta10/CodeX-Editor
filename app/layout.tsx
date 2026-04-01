@@ -32,29 +32,27 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <SessionProviderWrapper>
     <html lang="en">
-    <head>
-      <Script
-      src="https://cloud.umami.is/script.js"
-      data-website-id="0856d315-1e69-49ea-bbff-dccf1667554b"
-      strategy="lazyOnload"
-      />
-    </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Navbar/>
-        <Toaster 
-          position="top-center"
-          reverseOrder={false}
+        <SessionProviderWrapper>
+          <Navbar/>
+          <Toaster 
+            position="top-center"
+            reverseOrder={false}
+          />
+          <Analytics/>
+          {children}
+          <SpeedInsights/>
+          <Footer/>
+        </SessionProviderWrapper>
+        <Script
+          src="https://cloud.umami.is/script.js"
+          data-website-id="0856d315-1e69-49ea-bbff-dccf1667554b"
+          strategy="lazyOnload"
         />
-        <Analytics/>
-        {children}
-        <SpeedInsights/>
-        <Footer/>
       </body>
     </html>
-    </SessionProviderWrapper>
   );
 }

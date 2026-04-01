@@ -2,6 +2,7 @@ import { authOptions } from "@/lib/options";
 import { getServerSession } from "next-auth";
 import { NextResponse, NextRequest } from "next/server";
 import { editCurrentFile } from "@/Supabase/supabaseFunctions";
+import { bustCache, cacheKeys } from "@/lib/cache";
 
 export async function PUT(req: NextRequest) {
     try {
@@ -21,6 +22,9 @@ export async function PUT(req: NextRequest) {
         if (!updatedFile.success) {
             return NextResponse.json({ message: "Failed to rename the file", error: updatedFile.error }, { status: 400 });
         }
+
+        // Bust file list cache
+        await bustCache(cacheKeys.fileList(userId));
 
         return NextResponse.json({
             message: "File renamed successfully",

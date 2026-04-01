@@ -1,4 +1,4 @@
-import { supabase } from "./supabaseClient";
+import { supabaseAdmin as supabase } from "@/lib/supabase-server";
 
 interface FileNode {
   name: string;
@@ -72,34 +72,18 @@ export async function createFile(fileName: string, userId: string) {
 export const savedFile = async (userId: string, fileName: string, content: string) => {
   try {
     const filePath = `${userId}/${fileName}`;
-
-    // Convert content to Blob (text-based)
     const fileBlob = new Blob([content], { type: "text/plain" });
 
-    // 🔍 Check if file exists
-    const { data: existingFile, error: fetchError } = await supabase.storage
-      .from("ide-files")
-      .list(userId);
-
-    if (fetchError) throw fetchError;
-
-    const fileExists = existingFile.some(file => file.name === fileName);
-
-    if (fileExists) {
-      // 🗑️ Delete the existing file
-      await supabase.storage.from("ide-files").remove([filePath]);
-    }
-    // 📤 Upload new file
+    // upsert: true handles create-or-replace in a single call
     const { data, error } = await supabase.storage
       .from("ide-files")
       .upload(filePath, fileBlob, { cacheControl: "3600", upsert: true });
 
     if (error) throw error;
 
-    console.log("✅ File saved successfully:", data);
     return { success: true, data };
   } catch (error) {
-    console.error("❌ Error saving file:", error);
+    console.error("Error saving file:", error);
     return { success: false, error };
   }
 };

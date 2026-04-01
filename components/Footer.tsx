@@ -1,6 +1,14 @@
+"use client";
+
 import { Code } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 export function Footer() {
+  const pathname = usePathname();
+
+  // Hide footer on editor page
+  if (pathname === "/editor") return null;
+
   return (
     <footer className="py-8 sm:py-10 md:py-12 border-t border-gray-800 bg-[#1e1e1e] text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

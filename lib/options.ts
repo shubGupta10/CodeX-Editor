@@ -73,7 +73,15 @@ export const authOptions: NextAuthOptions = {
     callbacks: {
         async jwt({ token, user, account }) {
             if (user) {
-                token.id = user.id;
+                if (account?.provider === 'credentials') {
+                    // Credentials login already returns MongoDB _id
+                    token.id = user.id;
+                } else {
+                    // OAuth login — look up the real MongoDB _id by email
+                    await ConnectoDatabase();
+                    const dbUser = await User.findOne({ email: user.email });
+                    token.id = dbUser?._id?.toString() || user.id;
+                }
                 token.provider = account?.provider;
             }
             return token;

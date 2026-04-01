@@ -29,7 +29,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: rateLimitResult.message }, { status: 429 });
     }
 
-    const { code, language } = await req.json();
+    const { code, language, fileName: userFileName } = await req.json();
 
     if (!code || !language) {
       return NextResponse.json({ error: "Code and language are required" }, { status: 400 });
@@ -45,6 +45,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unsupported language" }, { status: 400 });
     }
 
+    // Use the user's filename if available, otherwise generate a sensible default
+    let execFileName = userFileName || "code";
+    if (!userFileName) {
+      const defaultNames: Record<string, string> = {
+        java: "Main.java",
+        c: "main.c",
+        cpp: "main.cpp",
+        python: "main.py",
+        nodejs: "index.js",
+        typescript: "index.ts",
+      };
+      execFileName = defaultNames[compilerLanguage] || "code";
+    }
+
     const response = await fetch(ONECOMPILER_API_URL, {
       method: "POST",
       headers: {
@@ -54,7 +68,7 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         language: compilerLanguage,
         stdin: "",
-        files: [{ name: "code", content: code }],
+        files: [{ name: execFileName, content: code }],
       }),
     });
 

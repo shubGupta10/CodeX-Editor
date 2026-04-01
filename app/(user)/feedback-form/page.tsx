@@ -100,15 +100,17 @@ function FeedbackForm() {
   };
 
   return (
-    <div className="min-h-screen bg-[#1e1e1e] flex items-center justify-center p-4">
-      <div className="w-full max-w-3xl p-8 rounded-lg border border-gray-800 shadow-lg">
-        <h1 className="text-3xl font-bold text-white mb-6">Share Your Feedback</h1>
+    <div className="min-h-screen w-full bg-[#1e1e1e] text-white p-4 sm:p-12 flex justify-center">
+      <div className="w-full max-w-3xl pt-8 sm:pt-16">
+        <div className="mb-10 text-left">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-3">Feedback</h1>
+          <p className="text-gray-400 text-[15px]">Help us shape the future of CodeX. We read every message.</p>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="name" className=" text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
-              <User className="w-4 h-4" />
-              Your Name
+          <div className="space-y-2">
+            <label htmlFor="name" className="text-sm font-medium text-gray-300">
+              Name
             </label>
             <Input
               id="name"
@@ -116,33 +118,33 @@ function FeedbackForm() {
               value={formData.name}
               readOnly
               onChange={handleChange}
-              placeholder="Enter your name"
-              className="w-full bg-[#1e1e1e] border-gray-800 text-white focus:border-emerald-400 focus:ring-emerald-400"
+              placeholder="Your name"
+              className="w-full bg-[#252525] border-transparent focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-lg p-3 h-12 text-[15px] transition-all text-white"
               required
             />
           </div>
 
-          <div>
-            <label htmlFor="message" className=" text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
-              <MessageSquare className="w-4 h-4" />
-              Your Message
+          <div className="space-y-2">
+            <label htmlFor="message" className="text-sm font-medium text-gray-300 flex justify-between items-center">
+              <span>Message</span>
             </label>
             <Textarea
               id="message"
               name="message"
               value={formData.message}
               onChange={handleChange}
-              placeholder="Please share your thoughts or suggestions"
-              className="w-full bg-[#1e1e1e] border-gray-800 text-white min-h-[200px] focus:border-emerald-400 focus:ring-emerald-400"
+              placeholder="What's on your mind? Missing features, bugs, or general thoughts..."
+              className="w-full bg-[#252525] border-transparent focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-lg p-4 resize-none min-h-[160px] text-[15px] transition-all placeholder:text-gray-500 text-white"
               required
             />
           </div>
 
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full flex justify-center items-center py-3 rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50"
-          >
+          <div className="pt-4">
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full sm:w-auto px-8 h-12 flex justify-center items-center rounded-lg text-white bg-emerald-600 hover:bg-emerald-500 transition-colors font-medium disabled:opacity-50"
+            >
             {isSubmitting ? (
               <>
                 <Loader2 className="animate-spin mr-2 h-5 w-5" />
@@ -155,6 +157,7 @@ function FeedbackForm() {
               </>
             )}
           </Button>
+          </div>
         </form>
 
         {successMessage && (

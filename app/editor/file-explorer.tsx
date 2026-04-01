@@ -113,7 +113,8 @@ export default function FileExplorer() {
     selectFile, 
     createFile, 
     deleteFile,
-    editCurrentFile
+    editCurrentFile,
+    hasFetchedInitialData
   } = useFileStore();
   
   const [searchTerm, setSearchTerm] = useState("");
@@ -131,13 +132,15 @@ export default function FileExplorer() {
 
   useEffect(() => {
     if (session.status === 'authenticated') {
-      fetchAllFiles();
+      if (!hasFetchedInitialData) {
+        fetchAllFiles();
+      }
     } else {
       // Initialize with local storage files for unauthenticated users
       const storedFiles = JSON.parse(localStorage.getItem('localFiles') || '[]');
       setLocalFiles(storedFiles);
     }
-  }, [session.status, fetchAllFiles]);
+  }, [session.status, fetchAllFiles, hasFetchedInitialData]);
 
   // Loading states for operations
   const [isCreating, setIsCreating] = useState(false);
@@ -315,39 +318,44 @@ export default function FileExplorer() {
 
   return (
     <div className="h-full flex flex-col bg-[#1e1e1e] relative">
-      <div className="p-2 border-b border-gray-800 flex justify-between items-center">
-        <span className="text-gray-300 text-sm font-medium">EXPLORER</span>
-        <div className="flex gap-1">
+      <div className="px-4 py-3 border-b border-gray-800 flex justify-between items-center">
+        <span className="text-gray-400 text-[11px] font-semibold tracking-wider uppercase">Explorer</span>
+        <div className="flex items-center gap-1.5">
+          {session.status === 'authenticated' && (
+            <span className="text-[10px] text-gray-500 mr-1 bg-[#252525] px-1.5 py-0.5 rounded-md">
+              {files.length > 0 && files[0]?.children ? files[0].children.length : files.length}/5
+            </span>
+          )}
           <Button 
             size="icon" 
             variant="ghost" 
-            className="h-6 w-6 text-gray-400 hover:text-emerald-400 hover:bg-[#252525] transition-colors" 
+            className="h-7 w-7 text-gray-400 hover:text-emerald-400 hover:bg-[#252525] transition-colors rounded-md" 
             onClick={() => setIsNewFileModalOpen(true)}
             title="New File"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-4 h-4" />
           </Button>
           {session.status === 'authenticated' && (
             <Button 
               size="icon" 
               variant="ghost" 
-              className="h-6 w-6 text-gray-400 hover:text-emerald-400 hover:bg-[#252525] transition-colors" 
+              className="h-7 w-7 text-gray-400 hover:text-emerald-400 hover:bg-[#252525] transition-colors rounded-md" 
               onClick={fetchAllFiles} 
               disabled={isLoading}
               title="Refresh"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
+              <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
             </Button>
           )}
         </div>
       </div>
 
-      <div className="px-2 py-2">
+      <div className="px-3 py-3">
         <div className="relative">
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
-          <Input
-            className="h-7 pl-8 text-sm bg-[#252525] border-gray-800 text-gray-300 placeholder:text-gray-500 focus:border-emerald-600 focus:ring-emerald-600 focus:ring-opacity-20"
-            placeholder="Search files"
+          <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <Input 
+            placeholder="Search files..." 
+            className="pl-9 bg-[#252525] border-gray-800 focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30 text-xs h-8 text-gray-200 placeholder:text-gray-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -355,7 +363,16 @@ export default function FileExplorer() {
       </div>
 
       <ScrollArea className="flex-1 overflow-auto">
-        {filteredFiles.length > 0 ? (
+        {isLoading ? (
+          <div className="p-2 space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-2 px-2 py-1.5 animate-pulse">
+                <div className="w-4 h-4 rounded bg-gray-700" />
+                <div className="h-3 rounded bg-gray-700 flex-1" style={{ width: `${50 + i * 15}%` }} />
+              </div>
+            ))}
+          </div>
+        ) : filteredFiles.length > 0 ? (
           filteredFiles.map((file) => (
             <FileExplorerItem 
               key={file.name} 
@@ -367,8 +384,15 @@ export default function FileExplorer() {
             />
           ))
         ) : (
-          <div className="text-center text-gray-500 p-4 text-sm">
-            {isLoading ? "Loading files..." : "No files found"}
+          <div className="flex flex-col items-center text-gray-500 p-6 text-sm">
+            <FileCode className="w-8 h-8 mb-2 opacity-30" />
+            <p className="mb-1">No files yet</p>
+            <button 
+              className="text-emerald-400 hover:text-emerald-300 text-xs transition-colors"
+              onClick={() => setIsNewFileModalOpen(true)}
+            >
+              + Create your first file
+            </button>
           </div>
         )}
       </ScrollArea>
@@ -384,6 +408,8 @@ export default function FileExplorer() {
             placeholder="Enter file name (e.g. main.js)"
             value={fileName}
             onChange={(e) => setFileName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleCreateFile()}
+            autoFocus
             className="bg-[#252525] border-gray-800 text-white focus:border-emerald-600 focus:ring-emerald-600 focus:ring-opacity-20"
           />
           <DialogFooter>
@@ -396,9 +422,10 @@ export default function FileExplorer() {
             </Button>
             <Button 
               onClick={handleCreateFile}
+              disabled={isCreating}
               className="bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
             >
-              Create
+              {isCreating ? "Creating..." : "Create"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -418,6 +445,8 @@ export default function FileExplorer() {
             placeholder="Enter new file name"
             value={fileName}
             onChange={(e) => setFileName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleEditFile()}
+            autoFocus
             className="bg-[#252525] border-gray-800 text-white focus:border-emerald-600 focus:ring-emerald-600 focus:ring-opacity-20"
           />
           <DialogFooter>
@@ -430,9 +459,10 @@ export default function FileExplorer() {
             </Button>
             <Button 
               onClick={handleEditFile}
+              disabled={isEditing}
               className="bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
             >
-              Rename
+              {isEditing ? "Renaming..." : "Rename"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -457,10 +487,31 @@ export default function FileExplorer() {
             </Button>
             <Button 
               onClick={handleDeleteFile}
+              disabled={isDeleting}
               variant="destructive"
               className="bg-red-600 hover:bg-red-700 text-white transition-colors"
             >
-              Delete
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* File Limit Exceeded Dialog */}
+      <Dialog open={isFileLimitModalOpen} onOpenChange={setIsFileLimitModalOpen}>
+        <DialogContent className="bg-[#1e1e1e] text-white border-gray-800">
+          <DialogHeader>
+            <DialogTitle className="text-yellow-400">File Limit Reached</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              You&apos;ve reached the maximum of 5 files on the free plan. Delete an existing file to create a new one.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button 
+              className="bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
+              onClick={() => setIsFileLimitModalOpen(false)}
+            >
+              Got it
             </Button>
           </DialogFooter>
         </DialogContent>

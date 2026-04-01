@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/options";
 import { deleteFile } from "@/Supabase/supabaseFunctions";
 import UserLimitModel from "@/models/User_limit";
+import { bustCache, cacheKeys } from "@/lib/cache";
 
 export async function DELETE(req: NextRequest){
     try {
@@ -19,6 +20,10 @@ export async function DELETE(req: NextRequest){
         await UserLimitModel.findOneAndUpdate({
             userId
         }, {$inc: {fileCount: -1}})
+
+        // Bust file list cache
+        await bustCache(cacheKeys.fileList(userId));
+
         if(!deletedFile!){
             return NextResponse.json({ message: "Error deleting file!" }, { status: 500 });
         }

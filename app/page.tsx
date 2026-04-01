@@ -106,7 +106,7 @@ function VideoPlayer({ src, fallbackImage, className }: { src: string; fallbackI
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
       whileHover={{ scale: 1.01 }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}
     >
       <video ref={videoRef} className="w-full h-full object-cover rounded-lg" poster={fallbackImage} muted playsInline>
         <source src={src} type="video/mp4" />
@@ -148,7 +148,7 @@ function HeroSection() {
         delayChildren: 0.3,
       },
     },
-  }
+  } as const
 
   const item = {
     hidden: { y: 20, opacity: 0 },
@@ -156,7 +156,7 @@ function HeroSection() {
       y: 0,
       opacity: 1,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         stiffness: 100,
         damping: 10,
       },
@@ -244,7 +244,7 @@ function HeroSection() {
         transition={{
           duration: 0.8,
           delay: 0.5,
-          type: "spring",
+          type: "spring" as const,
           stiffness: 100,
         }}
       >
@@ -294,7 +294,7 @@ function AboutSection() {
       opacity: 1,
       y: 0,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         stiffness: 100,
         damping: 15,
       },
@@ -347,7 +347,7 @@ function AboutSection() {
           <motion.div
             className="w-full h-auto"
             whileHover={{ scale: 1.01 }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}
           >
             <VideoPlayer
               src="https://res.cloudinary.com/dnih6mdkd/video/upload/v1744716480/editorMain_compressed_nbg8p4.mp4"
@@ -368,7 +368,7 @@ function AboutSection() {
               initial={{ opacity: 0, x: 50 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{
-                type: "spring",
+                type: "spring" as const,
                 stiffness: 100,
                 damping: 15,
                 delay: 0.2,
@@ -396,7 +396,7 @@ function AboutSection() {
               initial={{ opacity: 0, x: 50 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{
-                type: "spring",
+                type: "spring" as const,
                 stiffness: 100,
                 damping: 15,
                 delay: 0.4,
@@ -471,7 +471,7 @@ function FeatureSection() {
       opacity: 1,
       y: 0,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         stiffness: 100,
         damping: 15,
       },
@@ -518,7 +518,7 @@ function FeatureSection() {
               className="flex items-center mb-4"
               initial={{ scale: 1 }}
               whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+              transition={{ type: "spring" as const, stiffness: 400, damping: 10 }}
             >
               <motion.div
                 className="p-3 rounded-lg bg-emerald-400/10 text-emerald-400 mr-4 flex-shrink-0"
@@ -549,7 +549,7 @@ function AIFeaturesSection() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{
-          type: "spring",
+          type: "spring" as const,
           stiffness: 100,
           damping: 15,
         }}
@@ -592,7 +592,7 @@ function CodeConverterFeature() {
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true }}
         transition={{
-          type: "spring",
+          type: "spring" as const,
           stiffness: 100,
           damping: 15,
           delay: 0.2,
@@ -618,7 +618,7 @@ function CodeConverterFeature() {
               scale: 1.02,
               boxShadow: "0 20px 25px -5px rgba(16, 185, 129, 0.1), 0 10px 10px -5px rgba(16, 185, 129, 0.04)",
             }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}
           >
             <VideoPlayer
               src="https://res.cloudinary.com/dnih6mdkd/video/upload/v1744716374/codeConverterNewVideo664654656_tkk4cj.mp4"
@@ -635,7 +635,7 @@ function CodeConverterFeature() {
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true }}
         transition={{
-          type: "spring",
+          type: "spring" as const,
           stiffness: 100,
           damping: 15,
           delay: 0.3,
@@ -679,7 +679,7 @@ function CodeConverterFeature() {
                 opacity: 1,
                 y: 0,
                 transition: {
-                  type: "spring",
+                  type: "spring" as const,
                   stiffness: 100,
                   damping: 15,
                 },
@@ -710,7 +710,7 @@ function CodeConverterFeature() {
                 opacity: 1,
                 y: 0,
                 transition: {
-                  type: "spring",
+                  type: "spring" as const,
                   stiffness: 100,
                   damping: 15,
                 },
@@ -741,7 +741,7 @@ function CodeConverterFeature() {
                 opacity: 1,
                 y: 0,
                 transition: {
-                  type: "spring",
+                  type: "spring" as const,
                   stiffness: 100,
                   damping: 15,
                 },
@@ -784,7 +784,7 @@ function AICodeAssistantFeature() {
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true }}
         transition={{
-          type: "spring",
+          type: "spring" as const,
           stiffness: 100,
           damping: 15,
           delay: 0.2,
@@ -826,7 +826,7 @@ function AICodeAssistantFeature() {
                 opacity: 1,
                 y: 0,
                 transition: {
-                  type: "spring",
+                  type: "spring" as const,
                   stiffness: 100,
                   damping: 15,
                 },
@@ -857,7 +857,7 @@ function AICodeAssistantFeature() {
                 opacity: 1,
                 y: 0,
                 transition: {
-                  type: "spring",
+                  type: "spring" as const,
                   stiffness: 100,
                   damping: 15,
                 },
@@ -888,7 +888,7 @@ function AICodeAssistantFeature() {
                 opacity: 1,
                 y: 0,
                 transition: {
-                  type: "spring",
+                  type: "spring" as const,
                   stiffness: 100,
                   damping: 15,
                 },
@@ -919,7 +919,7 @@ function AICodeAssistantFeature() {
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true }}
         transition={{
-          type: "spring",
+          type: "spring" as const,
           stiffness: 100,
           damping: 15,
           delay: 0.3,
@@ -945,7 +945,7 @@ function AICodeAssistantFeature() {
               scale: 1.02,
               boxShadow: "0 20px 25px -5px rgba(16, 185, 129, 0.1), 0 10px 10px -5px rgba(16, 185, 129, 0.04)",
             }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}
           >
             <VideoPlayer
               src="https://res.cloudinary.com/dnih6mdkd/video/upload/v1744716110/AIassistant_esvuq9.mp4"
@@ -974,7 +974,7 @@ function CodeSuggestionFeature() {
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true }}
         transition={{
-          type: "spring",
+          type: "spring" as const,
           stiffness: 100,
           damping: 15,
           delay: 0.2,
@@ -1000,7 +1000,7 @@ function CodeSuggestionFeature() {
               scale: 1.02,
               boxShadow: "0 20px 25px -5px rgba(16, 185, 129, 0.1), 0 10px 10px -5px rgba(16, 185, 129, 0.04)",
             }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}
           >
             <VideoPlayer
               src="https://res.cloudinary.com/dnih6mdkd/video/upload/v1744716284/aiSuggestion_tm1lrq.mp4"
@@ -1017,7 +1017,7 @@ function CodeSuggestionFeature() {
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true }}
         transition={{
-          type: "spring",
+          type: "spring" as const,
           stiffness: 100,
           damping: 15,
           delay: 0.3,
@@ -1061,7 +1061,7 @@ function CodeSuggestionFeature() {
                 opacity: 1,
                 y: 0,
                 transition: {
-                  type: "spring",
+                  type: "spring" as const,
                   stiffness: 100,
                   damping: 15,
                 },
@@ -1092,7 +1092,7 @@ function CodeSuggestionFeature() {
                 opacity: 1,
                 y: 0,
                 transition: {
-                  type: "spring",
+                  type: "spring" as const,
                   stiffness: 100,
                   damping: 15,
                 },
@@ -1123,7 +1123,7 @@ function CodeSuggestionFeature() {
                 opacity: 1,
                 y: 0,
                 transition: {
-                  type: "spring",
+                  type: "spring" as const,
                   stiffness: 100,
                   damping: 15,
                 },
@@ -1169,7 +1169,7 @@ function CTASection() {
           whileInView={{ y: 0, opacity: 1 }}
           viewport={{ once: true }}
           transition={{
-            type: "spring",
+            type: "spring" as const,
             stiffness: 100,
             damping: 15,
           }}

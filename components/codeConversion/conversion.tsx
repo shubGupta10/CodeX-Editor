@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { useAIStore } from "@/app/store/useAIStore";
+import useFileStore from "@/app/store/useFileStore";
 import { useSession } from "next-auth/react"; // Import useSession
 import { Code, X, ArrowLeft, Copy, Check, Loader2, RefreshCw, AlertCircle } from "lucide-react";
 import DisplayConvertedResponse from "./displayConvertedResponse";
@@ -18,7 +18,7 @@ type RateLimitData = {
 
 const ConversionCodePanel = () => {
   const { data: session } = useSession(); // Get session data
-  const { codeForConversion } = useAIStore();
+  const codeForConversion = useFileStore((s) => s.fileContent);
   const [sourceLanguage, setSourceLanguage] = useState("");
   const [targetLanguage, setTargetLanguage] = useState("");
   const [convertedCode, setConvertedCode] = useState("");

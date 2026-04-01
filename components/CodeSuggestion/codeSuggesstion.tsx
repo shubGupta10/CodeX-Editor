@@ -16,6 +16,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { LightbulbIcon, XIcon, CheckIcon } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { useSession } from "next-auth/react";
 
 interface CodeProps {
   node?: any;
@@ -37,6 +38,7 @@ export interface CodeSuggestionRef {
 
 const CodeSuggestion = forwardRef<CodeSuggestionRef, CodeSuggestionProps>(
   ({ code, onApplySuggestion, editorRef, isEnabled }, ref) => {
+    const { data: session } = useSession();
     const [suggestions, setSuggestions] = useState("");
     const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -45,8 +47,7 @@ const CodeSuggestion = forwardRef<CodeSuggestionRef, CodeSuggestionProps>(
     const scrollAreaRef = useRef<HTMLDivElement>(null);
 
     const forceFetchSuggestions = () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
+      if (!session?.user) {
         setShowLoginAlert(true);
         return;
       }
@@ -61,8 +62,7 @@ const CodeSuggestion = forwardRef<CodeSuggestionRef, CodeSuggestionProps>(
     }));
 
     const fetchCodeSuggestions = async (code: string) => {
-      const token = localStorage.getItem('token');
-      if (!token) {
+      if (!session?.user) {
         setShowLoginAlert(true);
         return;
       }
@@ -76,7 +76,6 @@ const CodeSuggestion = forwardRef<CodeSuggestionRef, CodeSuggestionProps>(
           method: "POST",
           headers: { 
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
           },
           body: JSON.stringify({ codeSnippet: code }),
         });
@@ -128,8 +127,7 @@ const CodeSuggestion = forwardRef<CodeSuggestionRef, CodeSuggestionProps>(
     };
 
     const applySuggestion = () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
+      if (!session?.user) {
         setShowLoginAlert(true);
         return;
       }

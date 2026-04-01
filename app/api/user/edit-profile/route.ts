@@ -3,6 +3,7 @@ import User from "@/models/UserModel";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/options";
 import { ConnectoDatabase } from "@/lib/db";
+import { bustCache, cacheKeys } from "@/lib/cache";
 
 export async function PATCH(req: NextRequest) {
     try {
@@ -35,6 +36,9 @@ export async function PATCH(req: NextRequest) {
         if (!updatedUser) {
             return NextResponse.json({ message: "User not found" }, { status: 404 });
         }
+
+        // Bust cached profile so next fetch gets fresh data
+        await bustCache(cacheKeys.userProfile(userId));
 
         return NextResponse.json(
             { message: "User updated successfully", user: updatedUser },

@@ -12,7 +12,7 @@ import { toast } from "react-hot-toast";
 import useFileStore from "@/app/store/useFileStore";
 import { Button } from "@/components/ui/button";
 import { Save, Lightbulb, Laptop, Smartphone, XCircle } from "lucide-react";
-import { useAIStore } from "../store/useAIStore";
+
 import CodeSuggestion from "@/components/CodeSuggestion/codeSuggesstion";
 import { Switch } from "@/components/ui/switch";
 import { useSession } from "next-auth/react";
@@ -37,7 +37,7 @@ export default function EditorPage() {
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [activeTab, setActiveTab] = useState("files");
   const [collapsedSidebar, setCollapsedSidebar] = useState(false);
-  const { code, setCode, setCodeForConversion } = useAIStore();
+
   const editorRef = useRef<any>(null);
   
   const [aiSuggestionsEnabled, setAiSuggestionsEnabled] = useState(false);
@@ -66,20 +66,24 @@ export default function EditorPage() {
     }
   }, [selectedFile]);
 
+  const localSaveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
   const handleEditorChange = (value: string | undefined) => {
     const updatedValue = value || "";
     setFileContent(updatedValue);
-    setCodeForConversion(updatedValue);
-    setCode(updatedValue);
 
+    // Debounce localStorage save for unauthenticated users
     if (session.status !== 'authenticated' && selectedFile) {
-      const localFiles = JSON.parse(localStorage.getItem('localFiles') || '[]');
-      const updatedFiles = localFiles.map((file: any) => 
-        file.name === selectedFile.name 
-          ? { ...file, content: updatedValue } 
-          : file
-      );
-      localStorage.setItem('localFiles', JSON.stringify(updatedFiles));
+      clearTimeout(localSaveTimeoutRef.current);
+      localSaveTimeoutRef.current = setTimeout(() => {
+        const localFiles = JSON.parse(localStorage.getItem('localFiles') || '[]');
+        const updatedFiles = localFiles.map((file: any) => 
+          file.name === selectedFile.name 
+            ? { ...file, content: updatedValue } 
+            : file
+        );
+        localStorage.setItem('localFiles', JSON.stringify(updatedFiles));
+      }, 500);
     }
   };
 
@@ -102,7 +106,22 @@ export default function EditorPage() {
     }
   };
 
+  const GUEST_EXECUTION_LIMIT = 1;
+
   const runCode = async () => {
+    // Guest execution limit — allow 1 free run, then prompt login
+    if (session.status !== 'authenticated') {
+      const guestRuns = parseInt(localStorage.getItem('guestExecutionCount') || '0', 10);
+      if (guestRuns >= GUEST_EXECUTION_LIMIT) {
+        toast.error("Sign in to continue running code");
+        setOutput("🔒 Free execution limit reached.\n\nSign in to get unlimited code executions.");
+        setStatus("error");
+        return;
+      }
+      // Increment guest run count
+      localStorage.setItem('guestExecutionCount', String(guestRuns + 1));
+    }
+
     setLoading(true);
     setOutput("Running...");
     setStatus("idle");

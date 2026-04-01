@@ -46,15 +46,22 @@ function Navbar() {
 
   useEffect(() => {
     const getCurrentUser = async () => {
-      const response = await fetch("/api/user/profile", {
-        method: "GET",
-        cache: "no-store"
-      })
-      const data = await response.json()
-      setCurrentUser(data.user)
+      if (!session?.user) return; // Don't fetch for unauthenticated users
+      try {
+        const response = await fetch("/api/user/profile", {
+          method: "GET",
+          cache: "no-store"
+        })
+        if (response.ok) {
+          const data = await response.json()
+          setCurrentUser(data.user)
+        }
+      } catch (error) {
+        console.error("Failed to fetch user profile:", error);
+      }
     }
     getCurrentUser()
-  }, [])
+  }, [session])
 
   return (
     <nav className="sticky top-0 z-50 bg-[#1e1e1e] border-b border-gray-800 text-white shadow-md">

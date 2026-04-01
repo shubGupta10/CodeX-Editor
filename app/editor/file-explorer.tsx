@@ -264,6 +264,16 @@ export default function FileExplorer() {
   };
 
   const handleFileSelect = (file: FileNode) => {
+    if (session.status !== 'authenticated') {
+      // For guests, load content from localStorage directly
+      const storedFiles = JSON.parse(localStorage.getItem('localFiles') || '[]');
+      const localFile = storedFiles.find((f: any) => f.name === file.name);
+      
+      // Set the file in the store with its local content
+      useFileStore.getState().setFileContent(localFile?.content || '');
+      useFileStore.setState({ selectedFile: file, isDirty: false });
+      return;
+    }
     selectFile(file);
   };
 
@@ -278,9 +288,12 @@ export default function FileExplorer() {
     setIsEditModalOpen(true);
   };
 
+  // Use local files for unauthenticated users, Zustand store files for authenticated
+  const displayFiles = session.status === 'authenticated' ? files : localFiles;
+
   const filteredFiles = searchTerm.trim() === "" 
-    ? files 
-    : files.map(folder => {
+    ? displayFiles 
+    : displayFiles.map(folder => {
         if (folder.type === "folder") {
           const filteredChildren = folder.children?.filter(file => 
             file.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -298,9 +311,7 @@ export default function FileExplorer() {
         (folder.children && folder.children.length > 0)
       );
 
-  useEffect(() => {
-    fetchAllFiles();
-  }, [fetchAllFiles]);
+
 
   return (
     <div className="h-full flex flex-col bg-[#1e1e1e] relative">

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { listUserFiles } from "@/Supabase/supabaseFunctions";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/options";
+import { getCached, cacheKeys } from "@/lib/cache";
 
 export async function GET(req: NextRequest) {
     try {
@@ -11,7 +12,15 @@ export async function GET(req: NextRequest) {
         }
 
         const userId = session.user.id;
-        const files = await listUserFiles(userId);
+
+        // Cache file list for 2 minutes
+        const files = await getCached(
+            cacheKeys.fileList(userId),
+            120,
+            async () => {
+                return await listUserFiles(userId);
+            }
+        );
 
         return NextResponse.json({ files }, { status: 200 });
 

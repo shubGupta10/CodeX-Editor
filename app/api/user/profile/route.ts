@@ -3,11 +3,11 @@ import { authOptions } from "@/lib/options";
 import User from "@/models/UserModel";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
+import { getCached, cacheKeys } from "@/lib/cache";
 
 export async function GET() {
     try {
         await ConnectoDatabase();
-        console.log("Database connected successfully");
 
         const session = await getServerSession(authOptions);
         if (!session?.user?.id) {
@@ -17,10 +17,19 @@ export async function GET() {
             );
         }
 
-        const currentUserEmail = await session.user.email;
+        const userId = session.user.id;
+        const currentUserEmail = session.user.email;
 
+        // Cache user profile for 5 minutes
+        const foundUser = await getCached(
+            cacheKeys.userProfile(userId),
+            300,
+            async () => {
+                const user = await User.findOne({ email: currentUserEmail }).lean();
+                return user;
+            }
+        );
 
-        const foundUser = await User.findOne({email: currentUserEmail})
         if (!foundUser) {
             return NextResponse.json(
                 { message: "User not found" },

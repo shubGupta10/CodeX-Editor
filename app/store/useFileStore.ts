@@ -16,6 +16,8 @@ interface FileStore {
   fileContent: string;
   isLoading: boolean;
   isDirty: boolean;
+  contentCache: Map<string, string>;
+  hasFetchedInitialData: boolean;
   
   // Actions
   setFiles: (files: FileNode[]) => void;
@@ -36,17 +38,29 @@ const useFileStore = create<FileStore>((set, get) => ({
   fileContent: "",
   isLoading: false,
   isDirty: false,
+  contentCache: new Map(),
+  hasFetchedInitialData: false,
   
   // Actions
   setFiles: (files) => set({ files }),
   
   selectFile: async (file) => {
-    const { isDirty, saveFileContent } = get();
-    if (isDirty && get().selectedFile) {
-      await saveFileContent();
+    const { selectedFile, fileContent, contentCache } = get();
+
+    // Cache current file's content before switching
+    if (selectedFile && selectedFile.type === "file") {
+      contentCache.set(selectedFile.name, fileContent);
     }
     
     if (file && file.type === "file") {
+      // Check cache first — instant switch
+      const cached = contentCache.get(file.name);
+      if (cached !== undefined) {
+        set({ selectedFile: file, fileContent: cached, isDirty: false });
+        return;
+      }
+
+      // Not in cache — fetch from API
       set({ selectedFile: file, isLoading: true });
       await get().loadFileContent(file.name);
     } else {
@@ -57,7 +71,7 @@ const useFileStore = create<FileStore>((set, get) => ({
   setFileContent: (content) => {
     set({ 
       fileContent: content,
-      isDirty: content !== get().fileContent
+      isDirty: true
     });
   },
   
@@ -88,8 +102,9 @@ const useFileStore = create<FileStore>((set, get) => ({
       
       // Select the newly created file
       const newFile: FileNode = { name: fileName, type: "file", language };
-      set({ selectedFile: newFile });
-      await get().loadFileContent(fileName);
+      const defaultContent = "// New file content";
+      get().contentCache.set(fileName, defaultContent);
+      set({ selectedFile: newFile, fileContent: defaultContent, isDirty: false });
       
     } catch (error) {
       console.error("Error creating file:", error);
@@ -111,6 +126,9 @@ const useFileStore = create<FileStore>((set, get) => ({
       if (!response.ok) {
         throw new Error("Failed to delete file");
       }
+      
+      // Remove from cache
+      get().contentCache.delete(fileName);
       
       // If the deleted file is the selected file, clear selection
       if (get().selectedFile?.name === fileName) {
@@ -144,9 +162,13 @@ const useFileStore = create<FileStore>((set, get) => ({
       }
       
       const data = await response.json();
+      const content = data.content || "";
+      
+      // Store in cache
+      get().contentCache.set(fileName, content);
       
       set({ 
-        fileContent: data.content || "", 
+        fileContent: content, 
         isLoading: false,
         isDirty: false
       });
@@ -160,7 +182,7 @@ const useFileStore = create<FileStore>((set, get) => ({
   },
   
   saveFileContent: async () => {
-    const { selectedFile, fileContent } = get();
+    const { selectedFile, fileContent, contentCache } = get();
     if (!selectedFile) return;
     
     set({ isLoading: true });
@@ -178,6 +200,8 @@ const useFileStore = create<FileStore>((set, get) => ({
         throw new Error("Failed to save file");
       }
       
+      // Update cache with saved content
+      contentCache.set(selectedFile.name, fileContent);
       set({ isDirty: false });
       return;
       
@@ -199,7 +223,7 @@ const useFileStore = create<FileStore>((set, get) => ({
       }
       
       const data = await response.json();
-      set({ files: data.files || [] });
+      set({ files: data.files || [], hasFetchedInitialData: true });
       
     } catch (error) {
       console.error("Error fetching files:", error);
@@ -222,6 +246,14 @@ const useFileStore = create<FileStore>((set, get) => ({
         throw new Error(errorData.message || "Failed to update file");
       }
       const updatedData = await response.json();
+      
+      // Move cache entry to new name
+      const { contentCache } = get();
+      const cachedContent = contentCache.get(oldFileName);
+      if (cachedContent !== undefined) {
+        contentCache.delete(oldFileName);
+        contentCache.set(newFileName, cachedContent);
+      }
       
       // Update the selected file with the new name
       if (get().selectedFile?.name === oldFileName) {

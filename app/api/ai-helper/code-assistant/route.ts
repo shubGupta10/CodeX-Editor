@@ -3,7 +3,7 @@ import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/options";
 import { aiRateLimit } from "@/lib/ratelimit";
-import redis from "@/redis/redis"; // Ensure it's configured for Upstash
+import redis from "@/redis/redis";
 import UserLimitModel from "@/models/User_limit";
 import { ConnectoDatabase } from "@/lib/db";
 
@@ -13,7 +13,7 @@ const ONE_DAY_IN_SECONDS = 86400;
 
 export async function POST(req: NextRequest) {
   try {
-    await ConnectoDatabase()
+    await ConnectoDatabase();
     const { prompt, code, isGuest } = await req.json();
     const session = await getServerSession(authOptions);
 
@@ -24,29 +24,38 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (!process.env.GOOGLE_GEMINI_API_KEY) {
+      console.error("Missing Gemini API key");
+      return NextResponse.json(
+        { message: "Server configuration error" },
+        { status: 500 }
+      );
+    }
+
     const userId = session?.user?.id || 'guest';
     const MAX_DAILY_REQUESTS = isGuest ? MAX_GUEST_REQUESTS : MAX_LOGGED_IN_REQUESTS;
 
-    // If user is not logged in and is a guest
+    // Rate limiting (fail-open if Redis is down)
     if (isGuest) {
-      // Do guest-specific checks
-      const redisKey = `guest:daily_requests`;
-      const requestCount = await redis.incr(redisKey);
+      try {
+        const redisKey = `guest:daily_requests`;
+        const requestCount = await redis.incr(redisKey);
 
-      // If this is the first request of the day, set expiry
-      if (requestCount === 1) {
-        await redis.expire(redisKey, ONE_DAY_IN_SECONDS);
-      }
+        if (requestCount === 1) {
+          await redis.expire(redisKey, ONE_DAY_IN_SECONDS);
+        }
 
-      if (requestCount > MAX_GUEST_REQUESTS) {
-        return NextResponse.json(
-          { message: `Guest users are limited to ${MAX_GUEST_REQUESTS} AI conversations per day.` },
-          { status: 429 }
-        );
+        if (requestCount > MAX_GUEST_REQUESTS) {
+          return NextResponse.json(
+            { message: `Guest users are limited to ${MAX_GUEST_REQUESTS} AI conversations per day.` },
+            { status: 429 }
+          );
+        }
+      } catch (redisError) {
+        console.error("Redis error in code-assistant guest check:", redisError);
       }
     } else {
-      // Logged-in user specific checks
-      // Check existing AI rate limit 
+      // Logged-in user rate limiting
       const limitResult = await aiRateLimit(userId);
       if (!limitResult.success) {
         return NextResponse.json(
@@ -55,46 +64,42 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Check Redis for short-term limit for logged-in users
-      const redisKey = `user:${userId}:daily_requests`;
+      try {
+        const redisKey = `user:${userId}:daily_requests`;
+        const requestCount = await redis.incr(redisKey);
 
-      // Increment request count atomically
-      const requestCount = await redis.incr(redisKey);
+        if (requestCount === 1) {
+          await redis.expire(redisKey, ONE_DAY_IN_SECONDS);
+        }
 
-      // If this is the first request of the day, set expiry
-      if (requestCount === 1) {
-        await redis.expire(redisKey, ONE_DAY_IN_SECONDS);
+        if (requestCount > MAX_LOGGED_IN_REQUESTS) {
+          return NextResponse.json(
+            { message: `You have exceeded the daily limit of ${MAX_LOGGED_IN_REQUESTS} AI requests.` },
+            { status: 429 }
+          );
+        }
+      } catch (redisError) {
+        console.error("Redis error in code-assistant user check:", redisError);
       }
 
-      if (requestCount > MAX_LOGGED_IN_REQUESTS) {
-        return NextResponse.json(
-          { message: `You have exceeded the daily limit of ${MAX_LOGGED_IN_REQUESTS} AI requests.` },
-          { status: 429 }
+      // Store request count in DB for tracking
+      try {
+        await UserLimitModel.findOneAndUpdate(
+          { userId },
+          { $inc: { fileCount: 1 } },
+          { upsert: true, new: true }
         );
+      } catch (dbError) {
+        console.error("DB tracking error in code-assistant:", dbError);
       }
-
-      // Store the request count in the database for permanent tracking
-      await UserLimitModel.findOneAndUpdate(
-        { userId },
-        { $inc: { fileCount: 1 } },
-        { upsert: true, new: true }
-      );
     }
 
     const llm = new ChatGoogleGenerativeAI({
-      modelName: "gemini-1.5-flash",
+      modelName: "gemini-2.5-flash-lite",
       apiKey: process.env.GOOGLE_GEMINI_API_KEY,
       maxOutputTokens: 3072,
       temperature: 0.7,
     });
-
-    if (!process.env.GOOGLE_GEMINI_API_KEY) {
-      console.error("Missing Gemini API key");
-      return NextResponse.json(
-        { message: "Server configuration error" },
-        { status: 500 }
-      );
-    }
 
     const fullPrompt = `You are an expert programming assistant.  
     Analyze the following code and **respond according to the user's request**.  

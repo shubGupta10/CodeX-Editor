@@ -77,171 +77,118 @@ function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#1e1e1e] text-white p-4 flex items-center justify-center">
-      {/* Background gradient effects similar to homepage */}
-      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-emerald-500/10 blur-[100px] rounded-full z-0"></div>
-      <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-emerald-500/10 blur-[100px] rounded-full z-0"></div>
-      
-      <div className="w-full max-w-4xl relative z-10">
+    <div className="min-h-screen w-full bg-[#1e1e1e] text-white p-4 sm:p-12 flex justify-center">
+      <div className="w-full max-w-3xl pt-8 sm:pt-16">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.4 }}
         >
-          <Card className="bg-[#252525] border border-gray-800 shadow-xl w-full">
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-[#1e1e1e] rounded-t-lg p-6 border-b border-gray-800">
-              <div className="flex items-center gap-3">
-                <div className="bg-emerald-600 p-2 rounded-lg">
-                  <UserIcon className="h-6 w-6 text-white" />
-                </div>
-                <CardTitle className="text-white text-xl sm:text-2xl font-bold">User Profile</CardTitle>
-              </div>
-              <Button 
-                onClick={() => setIsEditOpen(true)}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white w-full sm:w-auto mt-4 sm:mt-0 flex items-center gap-2"
-                disabled={!user || loading}
-              >
-                <Edit3 className="h-4 w-4" />
-                Edit Profile
-              </Button>
-            </CardHeader>
-            
-            <CardContent className="p-6">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10">
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-3">User Profile</h1>
+              <p className="text-gray-400 text-[15px]">Manage your personal information and preferences.</p>
+            </div>
+            <Button 
+              onClick={() => setIsEditOpen(true)}
+              className="bg-white/10 hover:bg-white/20 border border-white/5 text-white w-full sm:w-auto mt-6 sm:mt-0 flex items-center gap-2 rounded-lg h-11 px-6 transition-all font-medium"
+              disabled={!user || loading}
+            >
+              <Edit3 className="h-4 w-4" />
+              Edit Profile
+            </Button>
+          </div>
+          
+          <div className="w-full">
+            <div className="pt-0">
               {loading ? (
                 <ProfileSkeleton />
               ) : user ? (
                 <div className="space-y-8">
-                  <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start">
+                  <div className="flex flex-col sm:flex-row gap-8 items-center sm:items-start pb-10 border-b border-gray-800/60 mb-10">
                     <motion.div
-                      initial={{ scale: 0.9, opacity: 0 }}
+                      initial={{ scale: 0.95, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
-                      transition={{ delay: 0.2, duration: 0.3 }}
+                      transition={{ delay: 0.1, duration: 0.3 }}
                     >
-                      <Avatar className="w-24 h-24 sm:w-32 sm:h-32 border-4 border-emerald-500 shadow-lg">
+                      <Avatar className="w-28 h-28 sm:w-32 sm:h-32 border border-gray-700 shadow-xl rounded-full">
                         <AvatarImage src={user.profileImage} alt={user.username} />
-                        <AvatarFallback className="bg-gradient-to-br from-emerald-600 to-teal-700 text-white text-2xl">
+                        <AvatarFallback className="bg-[#252525] text-gray-300 text-2xl font-light">
                           {getInitials(user.firstName, user.lastName)}
                         </AvatarFallback>
                       </Avatar>
                     </motion.div>
                     
-                    <div className="flex-1 space-y-3 text-center sm:text-left">
+                    <div className="flex-1 space-y-3 text-center sm:text-left mt-2 sm:mt-4">
                       <motion.div
-                        initial={{ x: -20, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        transition={{ delay: 0.3, duration: 0.4 }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.2, duration: 0.4 }}
                       >
-                        <h3 className="text-white text-2xl sm:text-3xl font-bold">
+                        <h3 className="text-white text-3xl font-semibold tracking-tight">
                           {user.firstName} {user.lastName}
                         </h3>
-                        <div className="flex flex-wrap gap-2 mt-2 justify-center sm:justify-start">
-                          <Badge className="bg-emerald-600 hover:bg-emerald-700 text-sm px-3 py-1">
+                        <div className="flex flex-wrap gap-2 mt-3 justify-center sm:justify-start">
+                          <Badge className="bg-[#252525] text-emerald-400 hover:bg-[#252525] border-transparent text-sm px-3 py-1 font-mono rounded-md">
                             @{user.username}
                           </Badge>
                         </div>
                       </motion.div>
-                      
-                      <motion.div
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.4, duration: 0.4 }}
-                        className="mt-4"
-                      >
-                      </motion.div>
                     </div>
                   </div>
                   
-                  <div className="bg-[#1e1e1e] rounded-lg p-5 border border-gray-800">
-                    <h4 className="text-lg font-semibold text-white mb-4 pb-2 border-b border-gray-800">
-                      User Information
+                  <div className="w-full">
+                    <h4 className="text-[13px] font-semibold text-gray-500 uppercase tracking-wider mb-6">
+                      Account Information
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-white">
-                      <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.5, duration: 0.3 }}
-                        className="flex items-center gap-3 p-3 rounded-lg bg-[#252525] border border-gray-800"
-                      >
-                        <div className="bg-emerald-500/20 p-2 rounded-lg">
-                          <Mail className="text-emerald-400 h-5 w-5 flex-shrink-0" />
-                        </div>
-                        <div>
-                          <span className="text-gray-400 text-sm block">Email</span>
-                          <span className="break-all">{user.email}</span>
-                        </div>
-                      </motion.div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 text-white">
+                      <div className="flex flex-col gap-1.5 border-b border-gray-800/40 pb-4">
+                        <span className="text-gray-500 text-[13px] font-medium">Email Address</span>
+                        <span className="text-gray-200 text-[15px]">{user.email}</span>
+                      </div>
                       
-                      <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.6, duration: 0.3 }}
-                        className="flex items-center gap-3 p-3 rounded-lg bg-[#252525] border border-gray-800"
-                      >
-                        <div className="bg-emerald-500/20 p-2 rounded-lg">
-                          <Clock className="text-emerald-400 h-5 w-5 flex-shrink-0" />
-                        </div>
-                        <div>
-                          <span className="text-gray-400 text-sm block">Last Login</span>
-                          <span>{formatDate(user.lastLogin)}</span>
-                        </div>
-                      </motion.div>
+                      <div className="flex flex-col gap-1.5 border-b border-gray-800/40 pb-4">
+                        <span className="text-gray-500 text-[13px] font-medium">Member Since</span>
+                        <span className="text-gray-200 text-[15px]">{formatDate(user.createdAt)}</span>
+                      </div>
                       
-                      <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.7, duration: 0.3 }}
-                        className="flex items-center gap-3 p-3 rounded-lg bg-[#252525] border border-gray-800"
-                      >
-                        <div className="bg-emerald-500/20 p-2 rounded-lg">
-                          <Calendar className="text-emerald-400 h-5 w-5 flex-shrink-0" />
-                        </div>
-                        <div>
-                          <span className="text-gray-400 text-sm block">Member Since</span>
-                          <span>{formatDate(user.createdAt)}</span>
-                        </div>
-                      </motion.div>
+                      <div className="flex flex-col gap-1.5 border-b border-gray-800/40 pb-4">
+                        <span className="text-gray-500 text-[13px] font-medium">Last Login</span>
+                        <span className="text-gray-200 text-[15px]">{formatDate(user.lastLogin)}</span>
+                      </div>
                       
-                      <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.8, duration: 0.3 }}
-                        className="flex items-center gap-3 p-3 rounded-lg bg-[#252525] border border-gray-800"
-                      >
-                        <div className="bg-emerald-500/20 p-2 rounded-lg">
-                          <Calendar className="text-emerald-400 h-5 w-5 flex-shrink-0" />
-                        </div>
-                        <div>
-                          <span className="text-gray-400 text-sm block">Last Updated</span>
-                          <span>{formatDate(user.updatedAt)}</span>
-                        </div>
-                      </motion.div>
+                      <div className="flex flex-col gap-1.5 border-b border-gray-800/40 pb-4">
+                        <span className="text-gray-500 text-[13px] font-medium">Profile Updated</span>
+                        <span className="text-gray-200 text-[15px]">{formatDate(user.updatedAt)}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               ) : (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   transition={{ duration: 0.5 }}
-                  className="flex flex-col items-center justify-center py-16 text-white"
+                  className="flex flex-col items-center justify-center py-20 text-white"
                 >
-                  <div className="bg-emerald-500/10 p-6 rounded-full mb-4">
-                    <UserIcon className="h-16 w-16 text-emerald-500" />
+                  <div className="bg-[#252525] p-6 rounded-full mb-6 relative">
+                    <UserIcon className="h-12 w-12 text-gray-500" />
                   </div>
-                  <h3 className="text-xl font-medium">No User Found</h3>
-                  <p className="text-gray-400 mt-2 text-center max-w-sm">
-                    Please sign in to view your profile information and settings
+                  <h3 className="text-2xl font-semibold tracking-tight">No User Found</h3>
+                  <p className="text-gray-500 mt-3 text-center max-w-md text-[15px]">
+                    Please sign in to view your profile information and manage your CodeX workspace.
                   </p>
                   <Button 
-                    className="mt-6 bg-emerald-600 hover:bg-emerald-700 text-white"
+                    className="mt-8 bg-emerald-600 hover:bg-emerald-500 text-white h-11 px-8 rounded-lg font-medium transition-colors"
                     onClick={() => window.location.href = "/auth/login"}
                   >
-                    Sign In
+                    Sign In to Continue
                   </Button>
                 </motion.div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </motion.div>
         
         {user && (

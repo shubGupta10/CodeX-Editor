@@ -1,6 +1,6 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Code2, Play, Menu, Save } from "lucide-react";
+import { Play, Menu, Save } from "lucide-react";
 import { languageOptions } from "../utils/constants";
 import { SupportedLanguage } from "../utils/editor-config";
 import AiButton from "@/components/AiButton";
@@ -28,40 +28,39 @@ export default function EditorHeader({
   fileName
 }: EditorHeaderProps) {
   return (
-    <header className="h-12 bg-[#1e1e1e] border-b border-gray-800 flex items-center justify-between px-3 shadow-sm">
+    <header className="h-12 bg-[#1e1e1e] border-b border-gray-800 flex items-center justify-between px-3 shadow-sm flex-shrink-0">
+      {/* Left: Menu + Filename */}
       <div className="flex items-center gap-2">
         <Button
           onClick={onToggleSidebar}
           variant="ghost"
           size="icon"
-          className="text-gray-400 hover:text-white hover:bg-[#252525] transition-colors"
+          className="h-8 w-8 text-gray-400 hover:text-white hover:bg-[#252525] transition-colors"
         >
-          <Menu className="w-5 h-5" />
+          <Menu className="w-4 h-4" />
         </Button>
-        <div className="flex items-center gap-2">
-          <Code2 className="w-5 h-5 text-emerald-400" />
-          <span className="font-medium text-gray-200">CodeX</span>
-          {fileName && (
-            <>
-              <span className="text-gray-500 mx-1">-</span>
-              <span className="text-gray-300 text-sm">{fileName}</span>
-              {isDirty && <span className="text-emerald-400 text-xs ml-1">*</span>}
-            </>
-          )}
-        </div>
+        {fileName && (
+          <div className="flex items-center gap-1.5 ml-1">
+            <span className="text-gray-300 text-sm font-medium">{fileName}</span>
+            {isDirty && <span className="text-yellow-500 text-[10px]">●</span>}
+          </div>
+        )}
       </div>
       
+      {/* Center: Convert + AI */}
       <div className="flex items-center gap-3">
-        {/* <RoomPanel/> */}
         <ConversionCodePanel/>
         <AiButton />
-        
+      </div>
+
+      {/* Right: Save + Language + Run */}
+      <div className="flex items-center gap-2.5">
         <Button
           onClick={onSave}
           disabled={loading || !isDirty}
           size="sm"
           variant="ghost"
-          className={`gap-1 h-8 px-3 transition-colors ${
+          className={`gap-1.5 h-8 px-3 text-sm transition-colors ${
             isDirty 
               ? 'text-emerald-400 hover:text-emerald-300 hover:bg-[#2a2a2a]' 
               : 'text-gray-500'
@@ -69,23 +68,24 @@ export default function EditorHeader({
         >
           <Save className="w-3.5 h-3.5" />
           Save
+          <kbd className="ml-1 text-[10px] text-gray-500 font-sans hidden xl:inline">⌘S</kbd>
         </Button>
         
-        <div className="h-6 w-px bg-gray-800" />
+        <div className="h-5 w-px bg-gray-800 mx-1" />
         
         <Select value={language} onValueChange={onLanguageChange}>
-          <SelectTrigger className="w-[150px] bg-[#252525] border-gray-800 h-8 text-sm text-gray-200 focus:ring-emerald-500 focus:ring-opacity-30">
-            <SelectValue placeholder="Select language" />
+          <SelectTrigger className="w-[140px] bg-[#252525] border-gray-800 h-8 text-sm text-gray-200 focus:ring-emerald-500 focus:ring-opacity-30">
+            <SelectValue placeholder="Language" />
           </SelectTrigger>
           <SelectContent className="bg-[#1e1e1e] text-gray-200 border-gray-800">
             {languageOptions.map((lang) => (
               <SelectItem 
                 key={lang.value} 
                 value={lang.value}
-                className="hover:bg-[#2a2a2a] focus:bg-[#2a2a2a] focus:text-emerald-400"
+                className="hover:bg-[#2a2a2a] focus:bg-[#2a2a2a] focus:text-emerald-400 text-sm"
               >
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-sm">{lang.icon}</span>
+                  <span className="font-mono text-xs">{lang.icon}</span>
                   {lang.label}
                 </div>
               </SelectItem>
@@ -97,14 +97,15 @@ export default function EditorHeader({
           onClick={onRun}
           disabled={loading}
           size="sm"
-          className={`text-white gap-1 h-8 px-3 transition-colors ${
+          className={`text-white gap-1.5 h-8 px-4 text-sm font-medium transition-colors ${
             loading 
               ? 'bg-emerald-600 opacity-80 cursor-not-allowed' 
               : 'bg-emerald-600 hover:bg-emerald-500'
           }`}
         >
-          <Play className="w-3.5 h-3.5" />
-          {loading ? "Running..." : "Run Code"}
+          <Play className="w-3.5 h-3.5 fill-current" />
+          {loading ? "Running..." : "Run"}
+          {!loading && <kbd className="ml-1 text-[10px] text-emerald-200/50 font-sans hidden xl:inline">⌘⏎</kbd>}
         </Button>
       </div>
     </header>

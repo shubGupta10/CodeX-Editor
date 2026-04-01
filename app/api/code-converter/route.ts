@@ -7,7 +7,7 @@ import { getServerSession } from "next-auth";
 import { NextResponse, NextRequest } from "next/server";
 
 const REQUEST_LIMIT_LOGGED_IN = 5;
-const REQUEST_LIMIT_GUEST = 2; // New guest limit
+const REQUEST_LIMIT_GUEST = 2;
 const TIME_LIMIT = 24 * 60 * 60;
 
 export async function POST(req: NextRequest) {
@@ -16,27 +16,28 @@ export async function POST(req: NextRequest) {
         const session = await getServerSession(authOptions);
         const userId = session?.user?.id;
 
-        // Determine request limit based on user status
         const REQUEST_LIMIT = userId ? REQUEST_LIMIT_LOGGED_IN : REQUEST_LIMIT_GUEST;
 
-        // Generate a unique key for rate limiting
         const userKey = userId 
             ? `conversion-limit-${userId}` 
             : `conversion-limit-guest-${req.headers.get('x-forwarded-for') || 'unknown'}`;
 
-        // Check user count in Redis
-        const requestCount = await redis.get(userKey);
-
-        if (requestCount && parseInt(requestCount.toString()) >= REQUEST_LIMIT) {
-            return NextResponse.json({ 
-                message: userId 
-                    ? "Rate limit exceeded, try again after 24 hours" 
-                    : "Guest user limit reached. Please sign in for more conversions.",
-                requiresSignIn: !userId 
-            }, { status: 429 });
+        // Check rate limit in Redis (fail-open if Redis is down)
+        try {
+            const requestCount = await redis.get(userKey);
+            if (requestCount && parseInt(requestCount.toString()) >= REQUEST_LIMIT) {
+                return NextResponse.json({ 
+                    message: userId 
+                        ? "Rate limit exceeded, try again after 24 hours" 
+                        : "Guest user limit reached. Please sign in for more conversions.",
+                    requiresSignIn: !userId 
+                }, { status: 429 });
+            }
+        } catch (redisError) {
+            console.error("Redis error in code-converter (skipping rate limit):", redisError);
         }
 
-        // If logged-in user, check and increment MongoDB limits atomically
+        // If logged-in user, check and increment MongoDB limits
         if (userId) {
             const userLimit = await UserLimitModel.findOneAndUpdate(
                 { userId },
@@ -49,14 +50,12 @@ export async function POST(req: NextRequest) {
                 { upsert: true, new: true }
             );
 
-            // Reset daily limits if time has passed
             if (new Date() > userLimit.conversionResetAt) {
                 userLimit.conversionCount = 0;
                 userLimit.conversionResetAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
                 await userLimit.save();
             }
 
-            // Check database limit
             if (userLimit.conversionCount >= userLimit.conversionLimit) {
                 return NextResponse.json({ 
                     message: "Conversion limit exceeded, try again after 24 hours",
@@ -64,14 +63,17 @@ export async function POST(req: NextRequest) {
                 }, { status: 429 });
             }
 
-            // Increment count
             userLimit.conversionCount += 1;
             await userLimit.save();
         }
 
-        // Increment request count in Redis
-        await redis.incr(userKey);
-        await redis.expire(userKey, TIME_LIMIT);
+        // Increment Redis counter (fail-open)
+        try {
+            await redis.incr(userKey);
+            await redis.expire(userKey, TIME_LIMIT);
+        } catch (redisError) {
+            console.error("Redis incr error in code-converter:", redisError);
+        }
 
         const { codeSnippet, sourceLanguage, targetLanguage } = await req.json();
         if (!codeSnippet || !sourceLanguage || !targetLanguage) {
@@ -79,7 +81,7 @@ export async function POST(req: NextRequest) {
         }
 
         const llm = new ChatGoogleGenerativeAI({
-            modelName: "gemini-1.5-flash",
+            modelName: "gemini-2.5-flash-lite",
             apiKey: process.env.GOOGLE_GEMINI_API_KEY,
             maxOutputTokens: 2048,
             temperature: 0.7,
@@ -97,10 +99,8 @@ export async function POST(req: NextRequest) {
         Converted Code in ${targetLanguage}:
         `;
 
-        // Generate AI response as a stream
         const stream = await llm.stream(prompt);
 
-        // Create a transformed stream
         const readableStream = new ReadableStream({
             async start(controller) {
                 for await (const chunk of stream) {
@@ -119,6 +119,7 @@ export async function POST(req: NextRequest) {
             },
         });
     } catch (error) {
+        console.error("Code converter error:", error);
         return NextResponse.json({ error: "An error occurred" }, { status: 500 });
     }
 }

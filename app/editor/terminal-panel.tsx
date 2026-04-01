@@ -6,9 +6,10 @@ import { useState } from "react";
 interface TerminalPanelProps {
   output: string;
   status: "idle" | "success" | "error";
+  onClear?: () => void;
 }
 
-export default function TerminalPanel({ output, status }: TerminalPanelProps) {
+export default function TerminalPanel({ output, status, onClear }: TerminalPanelProps) {
   const [maximized, setMaximized] = useState(false);
 
   const copyToClipboard = () => {
@@ -16,8 +17,7 @@ export default function TerminalPanel({ output, status }: TerminalPanelProps) {
   };
 
   const clearOutput = () => {
-    // Implement through a callback from parent component
-    console.log("Clear output requested");
+    onClear?.();
   };
 
   return (
@@ -38,14 +38,27 @@ export default function TerminalPanel({ output, status }: TerminalPanelProps) {
             size="icon"
             className="h-6 w-6 text-gray-400 hover:text-emerald-400 hover:bg-[#2a2a2a] transition-colors"
             onClick={copyToClipboard}
+            title="Copy output"
           >
             <Copy className="w-3.5 h-3.5" />
           </Button>
+          {output && (
+            <Button 
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 text-gray-400 hover:text-red-400 hover:bg-[#2a2a2a] transition-colors"
+              onClick={clearOutput}
+              title="Clear output"
+            >
+              <Trash className="w-3.5 h-3.5" />
+            </Button>
+          )}
           <Button 
             variant="ghost"
             size="icon"
             className="h-6 w-6 text-gray-400 hover:text-emerald-400 hover:bg-[#2a2a2a] transition-colors"
             onClick={() => setMaximized(!maximized)}
+            title={maximized ? "Restore" : "Maximize"}
           >
             <Maximize2 className="w-3.5 h-3.5" />
           </Button>

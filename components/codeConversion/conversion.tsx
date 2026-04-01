@@ -2,13 +2,12 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import useFileStore from "@/app/store/useFileStore";
-import { useSession } from "next-auth/react"; // Import useSession
-import { Code, X, ArrowLeft, Copy, Check, Loader2, RefreshCw, AlertCircle } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { X, Copy, Check, Loader2, RefreshCw, AlertCircle, ArrowLeft, Code } from "lucide-react";
 import DisplayConvertedResponse from "./displayConvertedResponse";
 
-// Rate limit constants
 const MAX_LOGGED_IN_CONVERSIONS = 5;
-const MAX_GUEST_CONVERSIONS = 2; // New guest limit
+const MAX_GUEST_CONVERSIONS = 2;
 const RATE_LIMIT_STORAGE_KEY = "code_conversion_rate_limit";
 
 type RateLimitData = {
@@ -17,7 +16,7 @@ type RateLimitData = {
 };
 
 const ConversionCodePanel = () => {
-  const { data: session } = useSession(); // Get session data
+  const { data: session } = useSession();
   const codeForConversion = useFileStore((s) => s.fileContent);
   const [sourceLanguage, setSourceLanguage] = useState("");
   const [targetLanguage, setTargetLanguage] = useState("");
@@ -31,72 +30,48 @@ const ConversionCodePanel = () => {
   const [timeUntilReset, setTimeUntilReset] = useState<string>("");
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
 
-  // Determine max conversions based on user status
   const MAX_CONVERSIONS = session?.user ? MAX_LOGGED_IN_CONVERSIONS : MAX_GUEST_CONVERSIONS;
 
-  // Check and load rate limit status from localStorage
   useEffect(() => {
     const checkRateLimit = () => {
       const savedData = localStorage.getItem(RATE_LIMIT_STORAGE_KEY);
-      
       if (savedData) {
         const data: RateLimitData = JSON.parse(savedData);
         const now = Date.now();
-        
-        // If the reset time has passed, reset the counter
         if (now > data.resetTime) {
-          const newData: RateLimitData = {
-            count: 0,
-            resetTime: now + 24 * 60 * 60 * 1000 // 24 hours from now
-          };
+          const newData: RateLimitData = { count: 0, resetTime: now + 24 * 60 * 60 * 1000 };
           localStorage.setItem(RATE_LIMIT_STORAGE_KEY, JSON.stringify(newData));
           setUsageCount(0);
           setRateLimited(false);
         } else {
-          // Still within rate limit period
           setUsageCount(data.count);
           setRateLimited(data.count >= MAX_CONVERSIONS);
-          
-          // Calculate time until reset
           const timeLeft = data.resetTime - now;
           const hours = Math.floor(timeLeft / (1000 * 60 * 60));
           const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
           setTimeUntilReset(`${hours}h ${minutes}m`);
         }
       } else {
-        // No saved data, initialize
-        const newData: RateLimitData = {
-          count: 0,
-          resetTime: Date.now() + 24 * 60 * 60 * 1000 // 24 hours from now
-        };
+        const newData: RateLimitData = { count: 0, resetTime: Date.now() + 24 * 60 * 60 * 1000 };
         localStorage.setItem(RATE_LIMIT_STORAGE_KEY, JSON.stringify(newData));
         setUsageCount(0);
         setRateLimited(false);
       }
     };
-    
     checkRateLimit();
-    
-    // Update time remaining every minute
     const intervalId = setInterval(checkRateLimit, 60000);
     return () => clearInterval(intervalId);
   }, [MAX_CONVERSIONS]);
 
-  // Update button position when the panel opens
   useEffect(() => {
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
-      setButtonPosition({ 
-        x: rect.left, 
-        y: rect.top 
-      });
+      setButtonPosition({ x: rect.left, y: rect.top });
     }
   }, [isOpen]);
 
-  // Close the panel when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (panelRef.current && !panelRef.current.contains(event.target as Node) && 
@@ -105,45 +80,31 @@ const ConversionCodePanel = () => {
         setIsOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showOutputPanel]);
 
-  // Increment the rate limit counter
   const incrementUsageCount = () => {
     const savedData = localStorage.getItem(RATE_LIMIT_STORAGE_KEY);
-    
     if (savedData) {
       const data: RateLimitData = JSON.parse(savedData);
       const newCount = data.count + 1;
-      const newData: RateLimitData = {
-        count: newCount,
-        resetTime: data.resetTime
-      };
-      
+      const newData: RateLimitData = { count: newCount, resetTime: data.resetTime };
       localStorage.setItem(RATE_LIMIT_STORAGE_KEY, JSON.stringify(newData));
       setUsageCount(newCount);
-      
-      if (newCount >= MAX_CONVERSIONS) {
-        setRateLimited(true);
-      }
-      
+      if (newCount >= MAX_CONVERSIONS) setRateLimited(true);
       return newCount;
     }
-    
     return 1;
   };
 
   const handleCodeConversion = async () => {
     if (!sourceLanguage || !targetLanguage || !codeForConversion) {
-      setError("Please select both languages and ensure code is available for conversion.");
+      setError("Please select both languages and ensure code is available.");
       return;
     }
-
-    // Check rate limit before making API call
     if (rateLimited) {
-      setError(`Rate limit exceeded. You can make ${MAX_CONVERSIONS} conversions every 24 hours. Please try again in ${timeUntilReset}.`);
+      setError(`Rate limit exceeded. Try again in ${timeUntilReset}.`);
       setShowOutputPanel(true);
       return;
     }
@@ -155,39 +116,25 @@ const ConversionCodePanel = () => {
     try {
       const response = await fetch("/api/code-converter", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ 
-          codeSnippet: codeForConversion, 
-          sourceLanguage, 
-          targetLanguage 
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ codeSnippet: codeForConversion, sourceLanguage, targetLanguage }),
       });
 
       if (response.status === 429) {
         const errorData = await response.json();
-        // Handle 429 Too Many Requests - Rate limit exceeded
-        incrementUsageCount(); // Ensure count is updated locally
+        incrementUsageCount();
         setRateLimited(true);
-        
-        // If sign-in is required, update error message
         if (errorData.requiresSignIn) {
-          setError(`Guest user limit reached. Please sign in for more conversions.`);
+          setError("Guest limit reached. Please sign in for more conversions.");
         } else {
-          setError(`Rate limit exceeded. You can make ${MAX_CONVERSIONS} conversions every 24 hours. Please try again in ${timeUntilReset}.`);
+          setError(`Rate limit exceeded. Try again in ${timeUntilReset}.`);
         }
-        
         throw new Error(errorData.message);
       }
 
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
 
-      // Successful conversion - increment usage count
-      const newCount = incrementUsageCount();
-      
+      incrementUsageCount();
       const result = await response.text();
       setConvertedCode(result);
     } catch (error: any) {
@@ -198,9 +145,7 @@ const ConversionCodePanel = () => {
     }
   };
 
-  const closeOutputPanel = () => {
-    setShowOutputPanel(false);
-  };
+  const closeOutputPanel = () => setShowOutputPanel(false);
 
   const languages = [
     { value: "javascript", label: "JavaScript" },
@@ -219,14 +164,14 @@ const ConversionCodePanel = () => {
 
   return (
     <>
-      {/* Code Conversion Button */}
+      {/* Convert Button */}
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center px-2 py-1 rounded text-sm bg-emerald-500 hover:bg-emerald-600 text-white transition ml-2"
+        className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
         aria-label="Code Converter"
       >
-        <RefreshCw size={16} className="mr-1" />
+        <RefreshCw size={16} />
         <span>Convert</span>
       </button>
 
@@ -234,111 +179,90 @@ const ConversionCodePanel = () => {
       {isOpen && !showOutputPanel && (
         <div 
           ref={panelRef}
-          className="fixed shadow-lg rounded-lg bg-gray-900 border border-gray-800"
+          className="fixed shadow-2xl rounded-xl bg-[#1e1e1e] border border-gray-700/50 backdrop-blur-md"
           style={{
-            top: `${buttonPosition.y + 40}px`,
-            right: '20px',
-            width: '380px',
+            top: `${buttonPosition.y + 44}px`,
+            right: '16px',
+            width: '400px',
             maxWidth: '90vw',
             zIndex: 40,
           }}
         >
-          <div className="p-3">
+          <div className="p-5">
             {/* Header */}
-            <div className="flex justify-between items-center border-b border-gray-800 pb-2 mb-3">
-              <div className="flex items-center">
-                <RefreshCw size={18} className="text-emerald-400 mr-2" />
-                <h3 className="text-md font-medium text-gray-200">Code Converter</h3>
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-2">
+                <RefreshCw size={18} className="text-emerald-400" />
+                <h3 className="text-base font-medium text-gray-100">Code Converter</h3>
               </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="text-gray-400 hover:text-gray-200"
-                aria-label="Close"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Usage Counter */}
-            <div className="mb-3 flex justify-between items-center">
-              <span className="text-sm text-gray-400">
-                Conversions remaining today:
-              </span>
-              <span className={`text-sm font-medium px-2 py-1 rounded-full ${
-                MAX_CONVERSIONS - usageCount <= 1 
-                  ? "bg-red-900/30 text-red-400" 
-                  : "bg-emerald-900/30 text-emerald-400"
-              }`}>
-                {Math.max(0, MAX_CONVERSIONS - usageCount)} / {MAX_CONVERSIONS}
-              </span>
+              <div className="flex items-center gap-2.5">
+                <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
+                  MAX_CONVERSIONS - usageCount <= 1 
+                    ? "bg-red-500/10 text-red-400" 
+                    : "bg-emerald-500/10 text-emerald-400"
+                }`}>
+                  {Math.max(0, MAX_CONVERSIONS - usageCount)}/{MAX_CONVERSIONS} left
+                </span>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-[#2a2a2a] text-gray-500 hover:text-gray-300 transition-colors"
+                  aria-label="Close"
+                >
+                  <X size={16} />
+                </button>
+              </div>
             </div>
 
             {/* Rate Limit Warning */}
             {rateLimited && (
-              <div className="mb-3 p-2 bg-red-900/30 border border-red-800 rounded text-sm text-red-400 flex items-start">
-                <AlertCircle size={16} className="mr-2 mt-0.5 flex-shrink-0" />
-                <div>
+              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-2.5">
+                <AlertCircle size={16} className="text-red-400 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-red-300">
                   <p className="font-medium">Rate limit exceeded</p>
-                  <p className="mt-1">
+                  <p className="mt-1 text-red-300/80 text-xs">
                     {session?.user 
-                      ? `You've reached the maximum of ${MAX_CONVERSIONS} conversions in 24 hours.` 
-                      : `Guest users are limited to ${MAX_CONVERSIONS} conversions. Please sign in for more.`
-                    } 
-                    Try again in {timeUntilReset}.
+                      ? `Max ${MAX_CONVERSIONS} conversions per day.`
+                      : "Guest limit reached. Sign in for more."
+                    } Resets in {timeUntilReset}.
                   </p>
-                  {!session?.user && (
-                    <button 
-                      onClick={() => {/* Add sign-in logic */}}
-                      className="mt-2 px-3 py-1 bg-emerald-500 text-white rounded text-xs"
-                    >
-                      Sign In
-                    </button>
-                  )}
                 </div>
               </div>
             )}
 
-            {/* Error Message */}
+            {/* Error */}
             {error && !rateLimited && (
-              <div className="mb-3 p-2 bg-red-900/30 border border-red-800 rounded text-sm text-red-400">
+              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400">
                 {error}
               </div>
             )}
 
-            {/* Language Selection Grid */}
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              {/* Source Language Selection */}
+            {/* Language Selection */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
               <div>
-                <label className="block text-gray-300 text-sm mb-1">From:</label>
+                <label className="block text-gray-400 text-[11px] font-medium uppercase tracking-wider mb-1.5">From</label>
                 <select
                   value={sourceLanguage}
                   onChange={(e) => setSourceLanguage(e.target.value)}
-                  className="w-full p-2 text-sm border border-gray-700 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-gray-800 text-gray-200"
+                  className="w-full p-2.5 text-sm border border-gray-700/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500/50 bg-[#252525] text-gray-200"
                   disabled={rateLimited}
                 >
-                  <option value="">Source</option>
+                  <option value="">Select format...</option>
                   {languages.map((lang) => (
-                    <option key={`source-${lang.value}`} value={lang.value}>
-                      {lang.label}
-                    </option>
+                    <option key={`source-${lang.value}`} value={lang.value}>{lang.label}</option>
                   ))}
                 </select>
               </div>
-
-              {/* Target Language Selection */}
               <div>
-                <label className="block text-gray-300 text-sm mb-1">To:</label>
+                <label className="block text-gray-400 text-[11px] font-medium uppercase tracking-wider mb-1.5">To</label>
                 <select
                   value={targetLanguage}
                   onChange={(e) => setTargetLanguage(e.target.value)}
-                  className="w-full p-2 text-sm border border-gray-700 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-gray-800 text-gray-200"
+                  className="w-full p-2.5 text-sm border border-gray-700/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500/50 bg-[#252525] text-gray-200"
                   disabled={rateLimited}
                 >
-                  <option value="">Target</option>
+                  <option value="">Select format...</option>
                   {languages.map((lang) => (
-                    <option key={`target-${lang.value}`} value={lang.value}>
-                      {lang.label}
-                    </option>
+                    <option key={`target-${lang.value}`} value={lang.value}>{lang.label}</option>
                   ))}
                 </select>
               </div>
@@ -347,18 +271,18 @@ const ConversionCodePanel = () => {
             {/* Code Preview */}
             <div className="mb-3">
               <div className="flex justify-between items-center mb-1">
-                <label className="block text-gray-300 text-sm">Selected Code</label>
-                <span className="text-xs text-gray-500">{codeForConversion?.length || 0} characters</span>
+                <label className="text-gray-500 text-[10px] uppercase tracking-wider">Code Preview</label>
+                <span className="text-[10px] text-gray-600">{codeForConversion?.length || 0} chars</span>
               </div>
-              <div className="p-2 text-sm border border-gray-700 rounded-md bg-gray-800 text-gray-400 h-24 overflow-y-auto">
+              <div className="p-2 text-xs border border-gray-700/50 rounded-md bg-[#252525] text-gray-400 h-20 overflow-y-auto">
                 {codeForConversion ? (
-                  <pre className="whitespace-pre-wrap break-words font-mono text-xs">
+                  <pre className="whitespace-pre-wrap break-words font-mono text-[11px] text-gray-400">
                     {codeForConversion.length > 300 
                       ? `${codeForConversion.substring(0, 300)}...` 
                       : codeForConversion}
                   </pre>
                 ) : (
-                  <span className="text-gray-500 italic">No code selected for conversion</span>
+                  <span className="text-gray-600 italic">No code selected</span>
                 )}
               </div>
             </div>
@@ -367,164 +291,126 @@ const ConversionCodePanel = () => {
             <button
               onClick={handleCodeConversion}
               disabled={isLoading || !sourceLanguage || !targetLanguage || !codeForConversion || rateLimited}
-              className={`w-full p-2 text-sm rounded-md transition flex items-center justify-center ${
+              className={`w-full p-2 text-xs rounded-md transition-colors flex items-center justify-center gap-1.5 font-medium ${
                 isLoading || !sourceLanguage || !targetLanguage || !codeForConversion || rateLimited
-                  ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
-                  : 'bg-emerald-500 text-white hover:bg-emerald-600'
+                  ? 'bg-gray-700/50 text-gray-500 cursor-not-allowed' 
+                  : 'bg-emerald-600 text-white hover:bg-emerald-500'
               }`}
             >
               {isLoading ? (
-                <>
-                  <Loader2 size={16} className="animate-spin mr-2" />
-                  <span>Converting...</span>
-                </>
+                <><Loader2 size={13} className="animate-spin" /> Converting...</>
               ) : rateLimited ? (
-                <>
-                  <AlertCircle size={16} className="mr-2" />
-                  <span>Rate Limited</span>
-                </>
+                <><AlertCircle size={13} /> Rate Limited</>
               ) : (
-                <>
-                  <RefreshCw size={16} className="mr-2" />
-                  <span>Convert Code</span>
-                </>
+                <><RefreshCw size={13} /> Convert Code</>
               )}
             </button>
 
-            <div className="mt-2 text-xs text-gray-500 text-center">
-              {sourceLanguage && targetLanguage ? (
-                <span>Converting from <strong className="text-gray-400">{languages.find(l => l.value === sourceLanguage)?.label}</strong> to <strong className="text-gray-400">{languages.find(l => l.value === targetLanguage)?.label}</strong></span>
-              ) : (
-                <span>Select source and target languages to continue</span>
-              )}
-            </div>
+            {sourceLanguage && targetLanguage && (
+              <p className="mt-2 text-center text-[10px] text-gray-600">
+                {languages.find(l => l.value === sourceLanguage)?.label} → {languages.find(l => l.value === targetLanguage)?.label}
+              </p>
+            )}
           </div>
         </div>
       )}
 
       {/* Output Panel */}
       {showOutputPanel && (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-95 flex items-center justify-center z-50">
-          <div className="w-full max-w-4xl h-3/4 bg-gray-900 border border-gray-800 rounded-lg shadow-2xl flex flex-col">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="w-full max-w-3xl h-[75vh] bg-[#1e1e1e] border border-gray-700/50 rounded-xl shadow-2xl flex flex-col overflow-hidden">
             {/* Header */}
-            <div className="flex justify-between items-center p-3 border-b border-gray-800">
-              <div className="flex items-center">
+            <div className="flex justify-between items-center px-4 py-3 border-b border-gray-800 flex-shrink-0">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={closeOutputPanel}
-                  className="p-1.5 mr-2 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-300"
+                  className="h-7 w-7 flex items-center justify-center rounded-md hover:bg-[#252525] text-gray-400 hover:text-gray-200 transition-colors"
                   aria-label="Back"
                 >
                   <ArrowLeft size={16} />
                 </button>
                 <div>
-                  <h2 className="text-md font-semibold text-white flex items-center">
-                    <span className="capitalize">{languages.find(l => l.value === sourceLanguage)?.label}</span>
-                    <span className="mx-2">→</span>
-                    <span className="capitalize">{languages.find(l => l.value === targetLanguage)?.label}</span>
+                  <h2 className="text-sm font-medium text-gray-200 flex items-center gap-1.5">
+                    {languages.find(l => l.value === sourceLanguage)?.label}
+                    <span className="text-gray-600">→</span>
+                    {languages.find(l => l.value === targetLanguage)?.label}
                   </h2>
-                  <p className="text-xs text-gray-400">Code Conversion Result</p>
                 </div>
               </div>
-              <div className="flex items-center">
-                {rateLimited ? (
-                  <span className="bg-red-500/20 text-red-400 px-2 py-1 rounded-full text-xs mr-2">
-                    Rate Limited
-                  </span>
-                ) : (
-                  <span className="bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-full text-xs mr-2">
-                    {isLoading ? "Converting..." : "Completed"}
-                  </span>
-                )}
-                <button
-                  onClick={closeOutputPanel}
-                  className="text-gray-400 hover:text-gray-200"
-                  aria-label="Close"
-                >
-                  <X size={18} />
-                </button>
-              </div>
+              <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                isLoading 
+                  ? "bg-yellow-500/10 text-yellow-400"
+                  : rateLimited 
+                    ? "bg-red-500/10 text-red-400"
+                    : "bg-emerald-500/10 text-emerald-400"
+              }`}>
+                {isLoading ? "Converting..." : rateLimited ? "Rate Limited" : "Complete"}
+              </span>
             </div>
             
-            {/* Content area */}
-            <div className="flex-1 p-4 overflow-y-auto">
-              <div className="rounded-lg bg-gray-800 shadow-inner">
-                {rateLimited ? (
-                  <div className="p-6 flex flex-col items-center justify-center text-center">
-                    <div className="bg-red-900/30 p-4 rounded-lg border border-red-800 max-w-lg">
-                      <AlertCircle size={40} className="text-red-400 mx-auto mb-3" />
-                      <h3 className="text-xl font-semibold text-red-400 mb-2">Rate Limit Exceeded</h3>
-                      <p className="text-gray-300 mb-3">
-                        {session?.user 
-                          ? `You've reached the maximum of ${MAX_CONVERSIONS} code conversions in a 24-hour period.`
-                          : `Guest users are limited to ${MAX_CONVERSIONS} code conversions. Please sign in for more.`
-                        }
-                      </p>
-                      <div className="bg-gray-800 rounded-lg p-3 mb-3">
-                        <p className="text-sm text-gray-400 mb-1">Time until reset:</p>
-                        <p className="text-xl font-mono text-red-400">{timeUntilReset}</p>
-                      </div>
-                      {!session?.user && (
-                        <button 
-                          onClick={() => {/* Add sign-in logic */}}
-                          className="mt-2 px-4 py-2 bg-emerald-500 text-white rounded hover:bg-emerald-600 transition"
-                        >
-                          Sign In
-                        </button>
-                      )}
-                      <p className="text-sm text-gray-400 mt-3">
-                        Please try again later. Your conversion limit will reset after the cooling period.
-                      </p>
-                    </div>
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-5">
+              {rateLimited ? (
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-xl max-w-md">
+                    <AlertCircle size={32} className="text-red-400 mx-auto mb-3" />
+                    <h3 className="text-base font-medium text-red-400 mb-2">Rate Limit Exceeded</h3>
+                    <p className="text-xs text-gray-400 mb-3">
+                      {session?.user 
+                        ? `You've reached the maximum of ${MAX_CONVERSIONS} conversions per day.`
+                        : "Guest users are limited. Please sign in for more."
+                      }
+                    </p>
+                    <p className="text-lg font-mono text-red-400">{timeUntilReset}</p>
                   </div>
-                ) : error && !rateLimited ? (
-                  <div className="p-4 rounded-lg bg-red-900/30 border border-red-800">
-                    <p className="text-red-400">{error}</p>
-                  </div>
-                ) : isLoading ? (
-                  <div className="flex flex-col items-center justify-center h-48 gap-3">
-                    <Loader2 size={32} className="animate-spin text-emerald-400" />
-                    <div className="text-emerald-400">Converting your code...</div>
-                    <div className="text-xs text-gray-500 max-w-md text-center">
-                      Converting from {languages.find(l => l.value === sourceLanguage)?.label} to {languages.find(l => l.value === targetLanguage)?.label}. This may take a moment.
-                    </div>
-                  </div>
-                ) : convertedCode ? (
-                  <DisplayConvertedResponse 
-                    codeSnippet={convertedCode} 
-                    language={targetLanguage}
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-48">
-                    <p className="text-gray-500">No converted code yet.</p>
-                  </div>
-                )}
-              </div>
+                </div>
+              ) : error && !rateLimited ? (
+                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+                  <p className="text-sm text-red-400">{error}</p>
+                </div>
+              ) : isLoading ? (
+                <div className="flex flex-col items-center justify-center h-full gap-3">
+                  <div className="h-8 w-8 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-xs text-gray-400">Converting your code...</p>
+                </div>
+              ) : convertedCode ? (
+                <DisplayConvertedResponse 
+                  codeSnippet={convertedCode} 
+                  language={targetLanguage}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-xs text-gray-500">No converted code yet.</p>
+                </div>
+              )}
             </div>
 
-            {/* Footer with Usage Counter */}
-            <div className="p-3 border-t border-gray-800 flex justify-between items-center">
-              <div className="text-xs text-gray-500">
-                <span className="mr-2">Conversions used: <span className="text-gray-300">{usageCount}</span> of {MAX_CONVERSIONS}</span>
-                {rateLimited && <span className="text-red-400">· Resets in {timeUntilReset}</span>}
+            {/* Footer */}
+            <div className="px-4 py-3 border-t border-gray-800 flex justify-between items-center flex-shrink-0">
+              <div className="text-[10px] text-gray-600">
+                {usageCount}/{MAX_CONVERSIONS} used
+                {rateLimited && <span className="text-red-400 ml-2">· {timeUntilReset}</span>}
               </div>
-              
               {!isLoading && convertedCode && !rateLimited && (
-                <div className="flex">
+                <div className="flex gap-2">
                   <button
-                    onClick={closeOutputPanel}
-                    className="px-3 py-1.5 text-sm rounded-md bg-gray-800 hover:bg-gray-700 text-gray-300 transition mr-2"
+                    onClick={() => navigator.clipboard.writeText(convertedCode)}
+                    className="px-3 py-1.5 rounded-md text-xs bg-[#252525] hover:bg-[#2a2a2a] text-gray-300 flex items-center gap-1.5 transition-colors"
                   >
-                    Back
+                    <Copy size={12} /> Copy
                   </button>
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(convertedCode);
-                      // You could add a toast notification here
+                      let cleanCode = convertedCode;
+                      const fenceMatch = cleanCode.match(/^```[\w]*\n?([\s\S]*?)```$/);
+                      if (fenceMatch) cleanCode = fenceMatch[1].trim();
+                      useFileStore.getState().setFileContent(cleanCode);
+                      closeOutputPanel();
+                      setIsOpen(false);
                     }}
-                    className="px-3 py-1.5 text-sm rounded-md bg-emerald-500 hover:bg-emerald-600 text-white flex items-center transition"
+                    className="px-3 py-1.5 rounded-md text-xs bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 transition-colors"
                   >
-                    <Copy size={14} className="mr-1" />
-                    Copy Full Result
+                    <Code size={12} /> Insert to Editor
                   </button>
                 </div>
               )}

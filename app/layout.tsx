@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     siteName: "CodeX",
     images: [
       {
-        url: "/ogImage.png",
+        url: "https://x-codex.vercel.app/ogImage.png",
         width: 1200,
         height: 630,
         alt: "CodeX IDE",
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "CodeX - Online IDE",
     description: "Code in your browser with no setup.",
-    images: ["/ogImage.png"],
+    images: ["https://x-codex.vercel.app/ogImage.png"],
   },
 };
 

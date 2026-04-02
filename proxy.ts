@@ -14,6 +14,7 @@ const publicRoutes = [
   "/javascript-online-compiler",
   "/typescript-online-compiler",
   "/java-online-compiler",
+  "/ogImage.png",
 ];
 
 function isPublicRoute(pathname: string): boolean {

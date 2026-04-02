@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import EditorHeader from "./editor-header";
 import FileExplorer from "./file-explorer";
@@ -20,7 +20,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { FeedbackModal } from "@/components/FeedbackModal";
 import { SignInLimitModal } from "@/components/SignInLimitModal";
 
-export default function EditorPage() {
+function EditorPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const session = useSession();
@@ -119,8 +119,6 @@ export default function EditorPage() {
       }, 500);
     }
   };
-
-
 
   const handleSaveFile = async () => {
     try {
@@ -501,5 +499,23 @@ export default function EditorPage() {
         onClose={() => setIsLimitModalOpen(false)}
       />
     </div>
+  );
+}
+
+export default function EditorPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen w-screen items-center justify-center bg-[#1e1e1e] text-emerald-500 font-mono">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-emerald-500/20 border-t-emerald-500"></div>
+          <div className="flex flex-col items-center gap-1">
+            <p className="text-sm font-medium tracking-wide uppercase">Initializing Editor</p>
+            <p className="text-xs text-emerald-500/60 lowercase">Please wait...</p>
+          </div>
+        </div>
+      </div>
+    }>
+      <EditorPageContent />
+    </Suspense>
   );
 }

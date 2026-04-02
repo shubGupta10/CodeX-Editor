@@ -16,11 +16,13 @@ import { Save, Lightbulb, Laptop, Smartphone, XCircle, Code2, Info } from "lucid
 import CodeSuggestion from "@/components/CodeSuggestion/codeSuggesstion";
 import { Switch } from "@/components/ui/switch";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { FeedbackModal } from "@/components/FeedbackModal";
+import { SignInLimitModal } from "@/components/SignInLimitModal";
 
 export default function EditorPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const session = useSession();
 
   const {
@@ -47,6 +49,16 @@ export default function EditorPage() {
 
   const [isMobile, setIsMobile] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [isLimitModalOpen, setIsLimitModalOpen] = useState(false);
+
+  useEffect(() => {
+    const langParam = searchParams.get("lang") as SupportedLanguage;
+    const validLanguages: SupportedLanguage[] = ["javascript", "python", "cpp", "java", "c", "typescript"];
+
+    if (langParam && validLanguages.includes(langParam)) {
+      setLanguage(langParam);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -65,7 +77,7 @@ export default function EditorPage() {
   useEffect(() => {
     if (selectedFile?.name) {
       const ext = selectedFile.name.split('.').pop()?.toLowerCase();
-      
+
       const langMap: Record<string, SupportedLanguage> = {
         'js': 'javascript',
         'jsx': 'javascript',
@@ -134,9 +146,7 @@ export default function EditorPage() {
     if (session.status !== 'authenticated') {
       const guestRuns = parseInt(localStorage.getItem('guestExecutionCount') || '0', 10);
       if (guestRuns >= GUEST_EXECUTION_LIMIT) {
-        toast.error("Sign in to continue running code");
-        setOutput("🔒 Free execution limit reached.\n\nSign in to get unlimited code executions.");
-        setStatus("error");
+        setIsLimitModalOpen(true);
         return;
       }
       // Increment guest run count
@@ -156,10 +166,8 @@ export default function EditorPage() {
       });
       const data = await response.json();
 
-      if (response.status === 429) {
-        toast.error("Rate limit exceeded! Please try again later.");
-        setOutput("⚠️ Rate limit exceeded.");
-        setStatus("error");
+      if (response.status === 429 || response.status === 403) {
+        setIsLimitModalOpen(true);
         return;
       }
 
@@ -183,7 +191,7 @@ export default function EditorPage() {
           if (feedbackStatus !== 'completed') {
             const compiles = parseInt(localStorage.getItem('codex_compile_count') || '0', 10) + 1;
             localStorage.setItem('codex_compile_count', String(compiles));
-            
+
             // Trigger exactly on 2nd compile
             if (compiles === 2) {
               setTimeout(() => setShowFeedbackModal(true), 1500);
@@ -477,8 +485,8 @@ export default function EditorPage() {
         </ResizablePanelGroup>
       </div>
 
-      <FeedbackModal 
-        isOpen={showFeedbackModal} 
+      <FeedbackModal
+        isOpen={showFeedbackModal}
         onClose={(didSubmitOrDismiss) => {
           setShowFeedbackModal(false);
           if (didSubmitOrDismiss) {
@@ -486,6 +494,11 @@ export default function EditorPage() {
           }
         }}
         userName={session?.data?.user?.name || undefined}
+      />
+
+      <SignInLimitModal 
+        isOpen={isLimitModalOpen}
+        onClose={() => setIsLimitModalOpen(false)}
       />
     </div>
   );

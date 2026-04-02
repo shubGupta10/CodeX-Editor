@@ -23,8 +23,8 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://x-codex.vercel.app"),
 
-  title: "CodeX - Online IDE",
-  description: "Start coding instantly in your browser. No setup needed.",
+  title: "CodeX - Online IDE for Fast Coding in Browser",
+  description: "Code online in your browser with CodeX.Run code instantly, switch between languages, and start coding from any device without setup",
 
   verification: {
     google: "Vzjo0cVBQ8kKoluIUxKuUguYxrcTa_zPPf4XGwLGQTo",
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   manifest: "/site.webmanifest",
 
   openGraph: {
-    title: "CodeX - Online IDE",
+    title: "CodeX - Online IDE to Code in Browser",
     description: "Start coding instantly in your browser. No setup needed.",
     url: "https://x-codex.vercel.app",
     siteName: "CodeX",
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "CodeX - Online IDE",
-    description: "Start coding instantly in your browser.",
+    description: "Code in your browser with no setup.",
     images: ["/ogImage.png"],
   },
 };

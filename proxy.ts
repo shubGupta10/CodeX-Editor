@@ -10,6 +10,10 @@ const publicRoutes = [
   "/api/execute",
   "/api/code-converter",
   "/api/auth",
+  "/python-online-compiler",
+  "/javascript-online-compiler",
+  "/typescript-online-compiler",
+  "/java-online-compiler",
 ];
 
 function isPublicRoute(pathname: string): boolean {

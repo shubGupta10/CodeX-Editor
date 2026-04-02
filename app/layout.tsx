@@ -26,6 +26,10 @@ export const metadata: Metadata = {
   title: "CodeX - Online IDE",
   description: "Start coding instantly in your browser. No setup needed.",
 
+  verification: {
+    google: "Vzjo0cVBQ8kKoluIUxKuUguYxrcTa_zPPf4XGwLGQTo",
+  },
+
   icons: {
     icon: [
       { url: "/favicon.ico" },

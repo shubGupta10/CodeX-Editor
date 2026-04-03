@@ -39,7 +39,7 @@ function FeedbackForm() {
       setCurrentUser(data.user);
     }
     getCurrentUser();
-  },[])
+  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -100,76 +100,78 @@ function FeedbackForm() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#1e1e1e] text-white p-4 sm:p-12 flex justify-center">
-      <div className="w-full max-w-3xl pt-8 sm:pt-16">
-        <div className="mb-10 text-left">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-3">Feedback</h1>
-          <p className="text-gray-400 text-[15px]">Help us shape the future of CodeX. We read every message.</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label htmlFor="name" className="text-sm font-medium text-gray-300">
-              Name
-            </label>
-            <Input
-              id="name"
-              name="name"
-              value={formData.name}
-              readOnly
-              onChange={handleChange}
-              placeholder="Your name"
-              className="w-full bg-[#252525] border-transparent focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-lg p-3 h-12 text-[15px] transition-all text-white"
-              required
-            />
+    <div className="min-h-screen flex-1 bg-[#1e1e1e] text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16">
+        <div className="w-full max-w-3xl">
+          <div className="mb-10 text-left">
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-3">Feedback</h1>
+            <p className="text-gray-400 text-[15px]">Help us shape the future of CodeX. We read every message.</p>
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="message" className="text-sm font-medium text-gray-300 flex justify-between items-center">
-              <span>Message</span>
-            </label>
-            <Textarea
-              id="message"
-              name="message"
-              value={formData.message}
-              onChange={handleChange}
-              placeholder="What's on your mind? Missing features, bugs, or general thoughts..."
-              className="w-full bg-[#252525] border-transparent focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-lg p-4 resize-none min-h-[160px] text-[15px] transition-all placeholder:text-gray-500 text-white"
-              required
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <label htmlFor="name" className="text-sm font-medium text-gray-300">
+                Name
+              </label>
+              <Input
+                id="name"
+                name="name"
+                value={formData.name}
+                readOnly
+                onChange={handleChange}
+                placeholder="Your name"
+                className="w-full bg-[#252525] border-transparent focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-lg p-3 h-12 text-[15px] transition-all text-white"
+                required
+              />
+            </div>
 
-          <div className="pt-4">
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full sm:w-auto px-8 h-12 flex justify-center items-center rounded-lg text-white bg-emerald-600 hover:bg-emerald-500 transition-colors font-medium disabled:opacity-50"
-            >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="animate-spin mr-2 h-5 w-5" />
-                Submitting...
-              </>
-            ) : (
-              <>
-                <Send className="mr-2 h-5 w-5" />
-                Submit Feedback
-              </>
-            )}
-          </Button>
-          </div>
-        </form>
+            <div className="space-y-2">
+              <label htmlFor="message" className="text-sm font-medium text-gray-300 flex justify-between items-center">
+                <span>Message</span>
+              </label>
+              <Textarea
+                id="message"
+                name="message"
+                value={formData.message}
+                onChange={handleChange}
+                placeholder="What's on your mind? Missing features, bugs, or general thoughts..."
+                className="w-full bg-[#252525] border-transparent focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-lg p-4 resize-none min-h-[160px] text-[15px] transition-all placeholder:text-gray-500 text-white"
+                required
+              />
+            </div>
 
-        {successMessage && (
-          <div
-            className={`mt-6 p-4 rounded-md ${successMessage.includes('Failed')
+            <div className="pt-4">
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full sm:w-auto px-8 h-12 flex justify-center items-center rounded-lg text-white bg-emerald-600 hover:bg-emerald-500 transition-colors font-medium disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="animate-spin mr-2 h-5 w-5" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <Send className="mr-2 h-5 w-5" />
+                    Submit Feedback
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+
+          {successMessage && (
+            <div
+              className={`mt-6 p-4 rounded-md ${successMessage.includes('Failed')
                 ? 'bg-red-900/50 text-red-200 border border-red-700'
                 : 'bg-emerald-900/50 text-emerald-200 border border-emerald-700'
-              }`}
-          >
-            {successMessage}
-          </div>
-        )}
+                }`}
+            >
+              {successMessage}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

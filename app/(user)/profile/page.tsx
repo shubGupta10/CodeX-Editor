@@ -14,7 +14,9 @@ import {
   Clock, 
   Edit3, 
   Shield, 
-  Globe 
+  Globe,
+  Zap,
+  FileText
 } from "lucide-react";
 import { EditProfileDialog } from "./EditProfile";
 import { motion } from "framer-motion";
@@ -77,8 +79,8 @@ function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#1e1e1e] text-white p-4 sm:p-12 flex justify-center">
-      <div className="w-full max-w-3xl pt-8 sm:pt-16">
+    <div className="min-h-screen flex-1 bg-[#1e1e1e] text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -162,6 +164,47 @@ function ProfilePage() {
                         <span className="text-gray-500 text-[13px] font-medium">Profile Updated</span>
                         <span className="text-gray-200 text-[15px]">{formatDate(user.updatedAt)}</span>
                       </div>
+                    </div>
+                  </div>
+                  
+                  <div className="w-full pt-4">
+                    <h4 className="text-[13px] font-semibold text-emerald-500 uppercase tracking-wider mb-6 flex items-center gap-2">
+                      <Zap className="h-4 w-4" /> Your Coding Stats
+                    </h4>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                      <Card className="bg-[#252525] border-gray-800 shadow-xl">
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm font-medium text-gray-400 flex items-center justify-between">
+                            AI Requests <Zap className="h-4 w-4 text-emerald-400" />
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-3xl font-bold text-white">{(user as any).limits?.aiRequestCount || 0}</div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card className="bg-[#252525] border-gray-800 shadow-xl">
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm font-medium text-gray-400 flex items-center justify-between">
+                            Conversions <Globe className="h-4 w-4 text-emerald-400" />
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-3xl font-bold text-white">{(user as any).limits?.conversionCount || 0}</div>
+                        </CardContent>
+                      </Card>
+
+                      <Card className="bg-[#252525] border-gray-800 shadow-xl">
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm font-medium text-gray-400 flex items-center justify-between">
+                            Files Created <FileText className="h-4 w-4 text-emerald-400" />
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-3xl font-bold text-white">{(user as any).limits?.fileCount || 0}</div>
+                        </CardContent>
+                      </Card>
                     </div>
                   </div>
                 </div>

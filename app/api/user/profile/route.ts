@@ -1,6 +1,7 @@
 import { ConnectoDatabase } from "@/lib/db";
 import { authOptions } from "@/lib/options";
 import User from "@/models/UserModel";
+import UserLimitModel from "@/models/User_limit";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { getCached, cacheKeys } from "@/lib/cache";
@@ -26,7 +27,9 @@ export async function GET() {
             300,
             async () => {
                 const user = await User.findOne({ email: currentUserEmail }).lean();
-                return user;
+                if (!user) return null;
+                const userLimits = await UserLimitModel.findOne({ userId: userId }).lean();
+                return { ...user, limits: userLimits || { aiRequestCount: 0, conversionCount: 0, fileCount: 0 } };
             }
         );
 

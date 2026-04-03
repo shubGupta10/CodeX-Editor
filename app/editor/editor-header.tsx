@@ -1,6 +1,6 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Play, Menu, Save } from "lucide-react";
+import { Play, Menu, Save, Download } from "lucide-react";
 import { languageOptions } from "../utils/constants";
 import { SupportedLanguage } from "../utils/editor-config";
 import AiButton from "@/components/AiButton";
@@ -13,6 +13,7 @@ interface EditorHeaderProps {
   loading: boolean;
   onToggleSidebar: () => void;
   onSave: () => void;
+  onExport: () => void;
   isDirty: boolean;
   fileName?: string;
 }
@@ -24,6 +25,7 @@ export default function EditorHeader({
   loading,
   onToggleSidebar,
   onSave,
+  onExport,
   isDirty,
   fileName
 }: EditorHeaderProps) {
@@ -53,8 +55,17 @@ export default function EditorHeader({
         <AiButton />
       </div>
 
-      {/* Right: Save + Language + Run */}
+      {/* Right: Export + Save + Language + Run */}
       <div className="flex items-center gap-2.5">
+        <Button
+          onClick={onExport}
+          size="sm"
+          variant="ghost"
+          className="gap-1.5 h-8 px-3 text-sm text-gray-400 hover:text-emerald-300 hover:bg-[#2a2a2a] transition-colors"
+        >
+          <Download className="w-3.5 h-3.5" />
+          Export
+        </Button>
         <Button
           onClick={onSave}
           disabled={loading || !isDirty}

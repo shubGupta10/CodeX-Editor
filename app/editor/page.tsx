@@ -130,6 +130,44 @@ function EditorPageContent() {
     }
   };
 
+  const handleExportFile = () => {
+    if (session.status !== 'authenticated') {
+      toast('Sign in to export files!', { icon: '🔒' });
+      setIsLimitModalOpen(true);
+      return;
+    }
+
+    if (!fileContent) {
+      toast.error("File is empty");
+      return;
+    }
+
+    let exportName = selectedFile?.name || "code_snippet";
+    if (!exportName.includes(".")) {
+      const extMap: Record<SupportedLanguage, string> = {
+        javascript: ".js",
+        python: ".py",
+        cpp: ".cpp",
+        java: ".java",
+        c: ".c",
+        typescript: ".ts",
+      };
+      exportName += extMap[language] || ".txt";
+    }
+
+    const blob = new Blob([fileContent], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = exportName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast.success(`Exported ${exportName}`);
+  };
+
   const handleLanguageChange = (newLanguage: SupportedLanguage) => {
     setLanguage(newLanguage);
     if (!selectedFile) {
@@ -293,6 +331,7 @@ function EditorPageContent() {
         loading={loading || isFileLoading}
         onToggleSidebar={toggleSidebar}
         onSave={handleSaveFile}
+        onExport={handleExportFile}
         isDirty={session.status === 'authenticated' ? isDirty : !!selectedFile?.content}
         fileName={selectedFile?.name}
       />

@@ -143,15 +143,33 @@ function Navbar() {
                 </Link>
               ))}
               {currentUser?.isAdmin === true && (
-                <Link
-                  href="/admin/fetch-details"
-                  className={`px-4 py-2 rounded-md text-[15px] font-medium transition-colors ${pathname === "/admin/fetch-details"
-                      ? "text-white"
-                      : "text-gray-400 hover:text-gray-200"
-                    }`}
-                >
-                  Admin
-                </Link>
+                <div className="relative group">
+                  <button
+                    className={`px-4 py-2 rounded-md text-[15px] font-medium transition-colors ${pathname.startsWith("/admin")
+                        ? "text-white"
+                        : "text-gray-400 group-hover:text-gray-200"
+                      }`}
+                  >
+                    Admin
+                  </button>
+                  {/* Invisible padding block prevents hover from dropping when moving mouse down */}
+                  <div className="absolute left-0 top-full pt-1 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <div className="rounded-md shadow-xl bg-[#252525] border border-gray-800 py-1 flex flex-col overflow-hidden">
+                      <Link
+                        href="/admin/fetch-details"
+                        className={`px-4 py-2.5 text-sm transition-colors ${pathname === "/admin/fetch-details" ? "text-emerald-400 bg-[#2b2b2b]" : "text-gray-300 hover:bg-[#2b2b2b] hover:text-white"}`}
+                      >
+                        User & Feedbacks
+                      </Link>
+                      <Link
+                        href="/admin/analytics"
+                        className={`px-4 py-2.5 text-sm transition-colors ${pathname === "/admin/analytics" ? "text-emerald-400 bg-[#2b2b2b]" : "text-gray-300 hover:bg-[#2b2b2b] hover:text-white"}`}
+                      >
+                        Analytics Dashboard
+                      </Link>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -252,13 +270,23 @@ function Navbar() {
                       </Link>
                     ))}
                     {currentUser?.isAdmin === true && (
-                      <Link
-                        href="/admin/fetch-details"
-                        className="block px-3 py-3 rounded-md text-base text-gray-300 hover:text-white hover:bg-[#252525] transition-colors pl-4"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        Admin
-                      </Link>
+                      <div className="pt-2 pb-1 border-t border-gray-800/50 mt-2">
+                        <span className="block px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider pl-4">Admin</span>
+                        <Link
+                          href="/admin/fetch-details"
+                          className={`block px-3 py-3 rounded-md text-base transition-colors pl-4 ${pathname === "/admin/fetch-details" ? "text-emerald-400 font-medium bg-[#252525]/50" : "text-gray-300 hover:text-white hover:bg-[#252525]"}`}
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          User & Feedbacks
+                        </Link>
+                        <Link
+                          href="/admin/analytics"
+                          className={`block px-3 py-3 rounded-md text-base transition-colors pl-4 ${pathname === "/admin/analytics" ? "text-emerald-400 font-medium bg-[#252525]/50" : "text-gray-300 hover:text-white hover:bg-[#252525]"}`}
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          Analytics Dashboard
+                        </Link>
+                      </div>
                     )}
 
                     {!user ? (

@@ -1,9 +1,15 @@
 import { NextResponse, NextRequest } from "next/server";
 import { ConnectoDatabase } from "@/lib/db";
 import User from "@/models/UserModel";
+import redis from "@/redis/redis";
 
 export async function GET() {
     try {
+        const cachedGrowth = await redis.get("admin:analytics:growth");
+        if (cachedGrowth) {
+            return NextResponse.json({ success: true, data: cachedGrowth });
+        }
+
         await ConnectoDatabase();
 
         const thirtyDaysAgo = new Date();
@@ -43,6 +49,8 @@ export async function GET() {
                 }
             }
         ]);
+
+        await redis.set("admin:analytics:growth", growthData, { ex: 60 });
 
         return NextResponse.json({
             success: true,

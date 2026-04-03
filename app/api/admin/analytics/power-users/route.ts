@@ -1,9 +1,15 @@
 import { NextResponse, NextRequest } from "next/server";
 import User from "@/models/UserModel";
 import { ConnectoDatabase } from "@/lib/db";
+import redis from "@/redis/redis";
 
 export async function GET() {
     try {
+        const cachedPowerUsers = await redis.get("admin:analytics:powerusers");
+        if (cachedPowerUsers) {
+            return NextResponse.json({ success: true, data: cachedPowerUsers });
+        }
+
         await ConnectoDatabase();
 
         const powerUsers = await User.aggregate([
@@ -40,6 +46,8 @@ export async function GET() {
                 }
             }
         ]);
+
+        await redis.set("admin:analytics:powerusers", powerUsers, { ex: 60 });
 
         return NextResponse.json({
             success: true,

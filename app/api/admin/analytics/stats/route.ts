@@ -2,9 +2,15 @@ import { NextResponse, NextRequest } from "next/server";
 import { ConnectoDatabase } from "@/lib/db";
 import User from "@/models/UserModel";
 import UserLimitModel from "@/models/User_limit";
+import redis from "@/redis/redis";
 
 export async function GET() {
     try {
+        const cachedStats = await redis.get("admin:analytics:stats");
+        if (cachedStats) {
+            return NextResponse.json({ success: true, data: cachedStats });
+        }
+
         await ConnectoDatabase();
 
         const totalUsers = await User.countDocuments();
@@ -26,14 +32,18 @@ export async function GET() {
             totalFiles: 0
         }
 
+        const payload = {
+            totalUsers,
+            totalAiRequests: stats.totalAiRequests,
+            totalConversions: stats.totalConversions,
+            totalFiles: stats.totalFiles
+        };
+
+        await redis.set("admin:analytics:stats", payload, { ex: 60 });
+
         return NextResponse.json({
             success: true,
-            data: {
-                totalUsers,
-                totalAiRequests: stats.totalAiRequests,
-                totalConversions: stats.totalConversions,
-                totalFiles: stats.totalFiles
-            }
+            data: payload
         });
     } catch (error) {
         return NextResponse.json(

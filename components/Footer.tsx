@@ -17,7 +17,7 @@ export function Footer() {
             <h2 className="text-xl sm:text-2xl font-bold flex items-center justify-center md:justify-start">
               <Code className="mr-2 text-emerald-400" /> CodeX
             </h2>
-            <p className="text-gray-400 mt-2 text-sm sm:text-base">© 2025 CodeX. All rights reserved.</p>
+            <p className="text-gray-400 mt-2 text-sm sm:text-base">© {new Date().getFullYear()} CodeX. All rights reserved.</p>
           </div>
           <div className="w-full md:w-auto flex flex-col md:flex-row items-center justify-center md:justify-end gap-6 sm:gap-8 md:gap-10">
             <a href="https://www.producthunt.com/posts/codex-editor?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-codex-editor" target="_blank">

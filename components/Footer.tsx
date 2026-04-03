@@ -2,6 +2,7 @@
 
 import { Code } from "lucide-react";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 
 export function Footer() {
   const pathname = usePathname();
@@ -15,7 +16,7 @@ export function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
           <div className="text-center md:text-left">
             <h2 className="text-xl sm:text-2xl font-bold flex items-center justify-center md:justify-start">
-              <Code className="mr-2 text-emerald-400" /> CodeX
+              <img src="/apple-touch-icon.png" width={28} height={28} alt="CodeX Logo" className="mr-2 rounded-md" /> CodeX
             </h2>
             <p className="text-gray-400 mt-2 text-sm sm:text-base">© {new Date().getFullYear()} CodeX. All rights reserved.</p>
           </div>

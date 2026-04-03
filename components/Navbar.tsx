@@ -12,6 +12,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { Menu, Code, User, LogOut, X } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 import useAuthStore from "@/app/store/userAuthStore"
 import { signOut, useSession } from "next-auth/react"
 import { useRouter, usePathname } from "next/navigation"
@@ -92,7 +93,7 @@ function Navbar() {
           <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
             <div className="flex items-center">
               <Link href="/" className="flex items-center space-x-2 hover:text-white">
-                <Code className="h-5 w-5 text-emerald-400" />
+                <img src="/apple-touch-icon.png" width={24} height={24} alt="CodeX Logo" className="rounded-md" />
                 <span className="text-xl font-bold">
                   <span className="text-white">Code</span>
                   <span className="text-emerald-400">X</span>
@@ -114,7 +115,7 @@ function Navbar() {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2 group">
-              <Code className="h-6 w-6 text-emerald-400 group-hover:scale-110 transition-transform" />
+              <img src="/apple-touch-icon.png" width={28} height={28} alt="CodeX Logo" className="group-hover:scale-110 transition-transform rounded-md" />
               <span className="text-2xl font-bold tracking-tight">
                 <span className="text-white">Code</span>
                 <span className="text-emerald-400">X</span>
@@ -245,7 +246,7 @@ function Navbar() {
                   <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                   <div className="px-4 py-6 space-y-1">
                     <div className="flex items-center mb-6">
-                      <Code className="h-5 w-5 text-emerald-400 mr-2" />
+                      <img src="/apple-touch-icon.png" width={28} height={28} alt="CodeX Logo" className="mr-2 rounded-md" />
                       <span className="text-lg font-bold">
                         <span className="text-white">Code</span>
                         <span className="text-emerald-400">X</span>

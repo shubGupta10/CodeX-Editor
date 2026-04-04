@@ -45,7 +45,7 @@ export default function LoginPage() {
         const response = await fetch("/api/auth/session")
         const sessionData = await response.json()
         setUser(sessionData?.user)
-        router.push("/")
+        router.push("/editor")
         setTimeout(() => {
           window.location.reload()
         }, 1500)
@@ -60,7 +60,7 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     try {
       const result = await signIn("google", {
-        callbackUrl: "/",
+        callbackUrl: "/editor",
       })
 
       if (result?.error) {
@@ -74,7 +74,7 @@ export default function LoginPage() {
   const handleGitHubSignIn = async () => {
     try {
       const result = await signIn("github", {
-        callbackUrl: "/",
+        callbackUrl: "/editor",
       })
 
       if (result?.error) {

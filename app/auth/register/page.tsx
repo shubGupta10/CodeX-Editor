@@ -66,7 +66,7 @@ const RegisterPage = () => {
       }
 
       setUser(data.user)
-      router.push("/")
+      router.push("/editor")
     } catch (error) {
       setError(error instanceof Error ? error.message : "Registration failed")
     } finally {
@@ -77,7 +77,7 @@ const RegisterPage = () => {
   const handleGoogleSignIn = async () => {
     try {
       const result = await signIn("google", {
-        callbackUrl: "/",
+        callbackUrl: "/editor",
         redirect: true,
       })
       if (result?.error) {
@@ -91,7 +91,7 @@ const RegisterPage = () => {
   const handleGitHubSignIn = async () => {
     try {
       const result = await signIn("github", {
-        callbackUrl: "/",
+        callbackUrl: "/editor",
         redirect: true,
       })
       if (result?.error) {

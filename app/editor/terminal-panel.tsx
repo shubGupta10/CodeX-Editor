@@ -21,10 +21,10 @@ export default function TerminalPanel({ output, status, onClear }: TerminalPanel
   };
 
   return (
-    <div className={`h-full bg-[#1e1e1e] flex flex-col ${maximized ? 'fixed inset-0 z-50' : ''}`}>
-      <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-800 bg-[#252525]">
-        <Terminal className="w-4 h-4 text-emerald-400" />
-        <h3 className="text-sm font-medium text-gray-300">OUTPUT</h3>
+    <div className={`h-full bg-[#1e1e1e] flex flex-col ${maximized ? 'fixed inset-0 z-50 p-2' : ''}`}>
+      <div className="flex items-center gap-2 px-4 py-3 flex-shrink-0 bg-[#1e1e1e] sticky top-0 opacity-95 z-10 border-b border-gray-800/30">
+        <Terminal className="w-3.5 h-3.5 text-emerald-400" />
+        <h3 className="text-[11px] font-bold text-gray-400 tracking-widest uppercase">Output</h3>
         {status === "success" && (
           <CheckCircle2 className="w-4 h-4 text-emerald-400 ml-2" />
         )}
@@ -32,11 +32,11 @@ export default function TerminalPanel({ output, status, onClear }: TerminalPanel
           <XCircle className="w-4 h-4 text-red-400 ml-2" />
         )}
         
-        <div className="ml-auto flex items-center gap-1">
+        <div className="ml-auto flex items-center gap-1.5">
           <Button 
             variant="ghost"
             size="icon"
-            className="h-6 w-6 text-gray-400 hover:text-emerald-400 hover:bg-[#2a2a2a] transition-colors"
+            className="h-6 w-6 rounded-md text-gray-500 hover:text-emerald-400 hover:bg-[#2a2a2a] transition-all"
             onClick={copyToClipboard}
             title="Copy output"
           >
@@ -46,7 +46,7 @@ export default function TerminalPanel({ output, status, onClear }: TerminalPanel
             <Button 
               variant="ghost"
               size="icon"
-              className="h-6 w-6 text-gray-400 hover:text-red-400 hover:bg-[#2a2a2a] transition-colors"
+              className="h-6 w-6 rounded-md text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-all"
               onClick={clearOutput}
               title="Clear output"
             >
@@ -56,7 +56,7 @@ export default function TerminalPanel({ output, status, onClear }: TerminalPanel
           <Button 
             variant="ghost"
             size="icon"
-            className="h-6 w-6 text-gray-400 hover:text-emerald-400 hover:bg-[#2a2a2a] transition-colors"
+            className="h-6 w-6 rounded-md text-gray-500 hover:text-emerald-400 hover:bg-[#2a2a2a] transition-all"
             onClick={() => setMaximized(!maximized)}
             title={maximized ? "Restore" : "Maximize"}
           >

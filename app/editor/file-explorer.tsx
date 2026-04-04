@@ -5,11 +5,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, ChevronDown, ChevronRight, FileCode, Folder, FolderOpen, Plus, Search, Trash2Icon, Edit, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   DialogFooter,
   DialogDescription
 } from "@/components/ui/dialog";
@@ -31,19 +31,22 @@ function FileExplorerItem({ files, level = 0, onFileSelect, onDeleteFile, onEdit
   const [expanded, setExpanded] = useState(files.expanded || false);
   const [isHovered, setIsHovered] = useState(false);
   const user = useSession();
-  
+
   const isSelected = selectedFile && selectedFile.name === files.name && selectedFile.type === files.type;
 
   if (files.type === "file") {
     return (
       <div
-        className={`flex items-center gap-2 px-2 py-1.5 hover:bg-[#252525] ${isSelected ? 'bg-[#2a2a2a] border-l-2 border-emerald-400' : ''} text-gray-300 hover:text-white rounded cursor-pointer group transition-colors`}
+        className={`flex items-center gap-2 px-2.5 py-1.5 mx-1.5 mb-0.5 rounded-md cursor-pointer group transition-all duration-200 ${isSelected
+            ? 'bg-emerald-500/15 text-emerald-400 font-medium shadow-sm'
+            : 'text-gray-400 hover:text-gray-200 hover:bg-[#252525]'
+          }`}
         style={{ paddingLeft: `${level * 8 + 8}px` }}
         onClick={() => onFileSelect && onFileSelect(files)}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <FileCode className="w-4 h-4 text-emerald-400" />
+        <FileCode className={`w-4 h-4 ${isSelected ? 'text-emerald-400' : 'text-gray-500 group-hover:text-gray-300'} transition-colors`} />
         <span className="text-sm truncate flex-grow">{files.name}</span>
         {isHovered && (
           <>
@@ -80,7 +83,7 @@ function FileExplorerItem({ files, level = 0, onFileSelect, onDeleteFile, onEdit
   return (
     <div>
       <div
-        className="flex items-center gap-1 px-2 py-1 hover:bg-[#252525] text-gray-300 hover:text-white rounded cursor-pointer group transition-colors"
+        className="flex items-center gap-1 px-2 py-1.5 mx-1.5 mb-0.5 hover:bg-[#252525] text-gray-400 hover:text-gray-200 rounded-md cursor-pointer group transition-all duration-200"
         style={{ paddingLeft: `${level * 8 + 4}px` }}
         onClick={() => setExpanded(!expanded)}
       >
@@ -89,10 +92,10 @@ function FileExplorerItem({ files, level = 0, onFileSelect, onDeleteFile, onEdit
         <span className="text-sm font-medium">{files.name}</span>
       </div>
       {expanded && files.children?.map((child) => (
-        <FileExplorerItem 
-          key={child.name} 
-          files={child} 
-          level={level + 1} 
+        <FileExplorerItem
+          key={child.name}
+          files={child}
+          level={level + 1}
           onFileSelect={onFileSelect}
           onDeleteFile={onDeleteFile}
           onEditFile={onEditFile}
@@ -103,20 +106,19 @@ function FileExplorerItem({ files, level = 0, onFileSelect, onDeleteFile, onEdit
   );
 }
 
-export default function FileExplorer() {
-  // Use the Zustand store
-  const { 
-    files, 
-    selectedFile, 
-    isLoading, 
-    fetchAllFiles, 
-    selectFile, 
-    createFile, 
+export default function FileExplorer({ onClose }: { onClose?: () => void }) {
+  const {
+    files,
+    selectedFile,
+    isLoading,
+    fetchAllFiles,
+    selectFile,
+    createFile,
     deleteFile,
     editCurrentFile,
     hasFetchedInitialData
   } = useFileStore();
-  
+
   const [searchTerm, setSearchTerm] = useState("");
   const [isNewFileModalOpen, setIsNewFileModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -159,11 +161,11 @@ export default function FileExplorer() {
         type: 'file',
         content: ''
       };
-      
+
       const updatedFiles = [...localFiles, newFile];
       setLocalFiles(updatedFiles);
       localStorage.setItem('localFiles', JSON.stringify(updatedFiles));
-      
+
       toast.success("File created locally!");
       setIsNewFileModalOpen(false);
       setFileName("");
@@ -199,13 +201,13 @@ export default function FileExplorer() {
       const updatedFiles = localFiles.filter(f => f.name !== fileToDelete.name);
       setLocalFiles(updatedFiles);
       localStorage.setItem('localFiles', JSON.stringify(updatedFiles));
-      
+
       toast.success("File deleted locally!");
       setIsDeleteModalOpen(false);
       setFileToDelete(null);
       return;
     }
-  
+
     try {
       setIsDeleting(true);
       await deleteFile(fileToDelete.name);
@@ -226,7 +228,7 @@ export default function FileExplorer() {
       toast.error("No file selected for editing.");
       return;
     }
-  
+
     if (!fileName.trim()) {
       toast.error("File name cannot be empty.");
       return;
@@ -234,22 +236,22 @@ export default function FileExplorer() {
 
     if (session.status !== 'authenticated') {
       // Edit file locally for unauthenticated users
-      const updatedFiles = localFiles.map(f => 
-        f.name === fileToEdit.name 
-          ? { ...f, name: fileName } 
+      const updatedFiles = localFiles.map(f =>
+        f.name === fileToEdit.name
+          ? { ...f, name: fileName }
           : f
       );
-      
+
       setLocalFiles(updatedFiles);
       localStorage.setItem('localFiles', JSON.stringify(updatedFiles));
-      
+
       toast.success(`File renamed to "${fileName}" locally!`);
       setIsEditModalOpen(false);
       setFileToEdit(null);
       setFileName("");
       return;
     }
-  
+
     try {
       setIsEditing(true);
       await editCurrentFile(fileName, fileToEdit.name);
@@ -271,13 +273,15 @@ export default function FileExplorer() {
       // For guests, load content from localStorage directly
       const storedFiles = JSON.parse(localStorage.getItem('localFiles') || '[]');
       const localFile = storedFiles.find((f: any) => f.name === file.name);
-      
+
       // Set the file in the store with its local content
       useFileStore.getState().setFileContent(localFile?.content || '');
       useFileStore.setState({ selectedFile: file, isDirty: false });
+      onClose?.();
       return;
     }
     selectFile(file);
+    onClose?.();
   };
 
   const initiateFileDelete = (file: FileNode) => {
@@ -294,53 +298,53 @@ export default function FileExplorer() {
   // Use local files for unauthenticated users, Zustand store files for authenticated
   const displayFiles = session.status === 'authenticated' ? files : localFiles;
 
-  const filteredFiles = searchTerm.trim() === "" 
-    ? displayFiles 
+  const filteredFiles = searchTerm.trim() === ""
+    ? displayFiles
     : displayFiles.map(folder => {
-        if (folder.type === "folder") {
-          const filteredChildren = folder.children?.filter(file => 
-            file.name.toLowerCase().includes(searchTerm.toLowerCase())
-          );
-          
-          return {
-            ...folder,
-            children: filteredChildren,
-            expanded: filteredChildren && filteredChildren.length > 0 ? true : folder.expanded
-          };
-        }
-        return folder;
-      }).filter(folder => 
-        folder.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        (folder.children && folder.children.length > 0)
-      );
+      if (folder.type === "folder") {
+        const filteredChildren = folder.children?.filter(file =>
+          file.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+        return {
+          ...folder,
+          children: filteredChildren,
+          expanded: filteredChildren && filteredChildren.length > 0 ? true : folder.expanded
+        };
+      }
+      return folder;
+    }).filter(folder =>
+      folder.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (folder.children && folder.children.length > 0)
+    );
 
 
 
   return (
     <div className="h-full flex flex-col bg-[#1e1e1e] relative">
-      <div className="px-4 py-3 border-b border-gray-800 flex justify-between items-center">
-        <span className="text-gray-400 text-[11px] font-semibold tracking-wider uppercase">Explorer</span>
+      <div className="px-4 py-3 flex justify-between items-center bg-[#1e1e1e] z-10 opacity-90 transition-opacity">
+        <span className="text-gray-400 text-[11px] font-bold tracking-widest uppercase">Explorer</span>
         <div className="flex items-center gap-1.5">
           {session.status === 'authenticated' && (
             <span className="text-[10px] text-gray-500 mr-1 bg-[#252525] px-1.5 py-0.5 rounded-md">
               {files.length > 0 && files[0]?.children ? files[0].children.length : files.length}/5
             </span>
           )}
-          <Button 
-            size="icon" 
-            variant="ghost" 
-            className="h-7 w-7 text-gray-400 hover:text-emerald-400 hover:bg-[#252525] transition-colors rounded-md" 
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-7 w-7 text-gray-400 hover:text-emerald-400 hover:bg-[#252525] transition-colors rounded-md"
             onClick={() => setIsNewFileModalOpen(true)}
             title="New File"
           >
             <Plus className="w-4 h-4" />
           </Button>
           {session.status === 'authenticated' && (
-            <Button 
-              size="icon" 
-              variant="ghost" 
-              className="h-7 w-7 text-gray-400 hover:text-emerald-400 hover:bg-[#252525] transition-colors rounded-md" 
-              onClick={fetchAllFiles} 
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-7 w-7 text-gray-400 hover:text-emerald-400 hover:bg-[#252525] transition-colors rounded-md"
+              onClick={fetchAllFiles}
               disabled={isLoading}
               title="Refresh"
             >
@@ -352,10 +356,10 @@ export default function FileExplorer() {
 
       <div className="px-3 py-3">
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
-          <Input 
-            placeholder="Search files..." 
-            className="pl-9 bg-[#252525] border-gray-800 focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30 text-xs h-8 text-gray-200 placeholder:text-gray-500"
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
+          <Input
+            placeholder="Search files..."
+            className="pl-9 bg-[#252525] border-transparent rounded-full focus:bg-[#2a2a2a] focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30 text-xs h-8 text-gray-200 placeholder:text-gray-500 transition-all duration-200 shadow-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -374,9 +378,9 @@ export default function FileExplorer() {
           </div>
         ) : filteredFiles.length > 0 ? (
           filteredFiles.map((file) => (
-            <FileExplorerItem 
-              key={file.name} 
-              files={file} 
+            <FileExplorerItem
+              key={file.name}
+              files={file}
               onFileSelect={handleFileSelect}
               onDeleteFile={initiateFileDelete}
               onEditFile={initiateFileEdit}
@@ -387,7 +391,7 @@ export default function FileExplorer() {
           <div className="flex flex-col items-center text-gray-500 p-6 text-sm">
             <FileCode className="w-8 h-8 mb-2 opacity-30" />
             <p className="mb-1">No files yet</p>
-            <button 
+            <button
               className="text-emerald-400 hover:text-emerald-300 text-xs transition-colors"
               onClick={() => setIsNewFileModalOpen(true)}
             >
@@ -402,6 +406,9 @@ export default function FileExplorer() {
         <DialogContent className="bg-[#1e1e1e] text-white border-gray-800">
           <DialogHeader>
             <DialogTitle>Create a New File</DialogTitle>
+            <DialogDescription className="sr-only">
+              Enter the name of the new file to create.
+            </DialogDescription>
           </DialogHeader>
           <Input
             type="text"
@@ -413,14 +420,14 @@ export default function FileExplorer() {
             className="bg-[#252525] border-gray-800 text-white focus:border-emerald-600 focus:ring-emerald-600 focus:ring-opacity-20"
           />
           <DialogFooter>
-            <Button 
-              variant="ghost" 
-              className="text-gray-300 hover:text-white hover:bg-[#2a2a2a]" 
+            <Button
+              variant="ghost"
+              className="text-gray-300 hover:text-white hover:bg-[#2a2a2a]"
               onClick={() => setIsNewFileModalOpen(false)}
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleCreateFile}
               disabled={isCreating}
               className="bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
@@ -450,14 +457,14 @@ export default function FileExplorer() {
             className="bg-[#252525] border-gray-800 text-white focus:border-emerald-600 focus:ring-emerald-600 focus:ring-opacity-20"
           />
           <DialogFooter>
-            <Button 
-              variant="ghost" 
-              className="text-gray-300 hover:text-white hover:bg-[#2a2a2a]" 
+            <Button
+              variant="ghost"
+              className="text-gray-300 hover:text-white hover:bg-[#2a2a2a]"
               onClick={() => setIsEditModalOpen(false)}
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleEditFile}
               disabled={isEditing}
               className="bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
@@ -478,14 +485,14 @@ export default function FileExplorer() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button 
-              variant="ghost" 
-              className="text-gray-300 hover:text-white hover:bg-[#2a2a2a]" 
+            <Button
+              variant="ghost"
+              className="text-gray-300 hover:text-white hover:bg-[#2a2a2a]"
               onClick={() => setIsDeleteModalOpen(false)}
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleDeleteFile}
               disabled={isDeleting}
               variant="destructive"
@@ -507,7 +514,7 @@ export default function FileExplorer() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button 
+            <Button
               className="bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
               onClick={() => setIsFileLimitModalOpen(false)}
             >

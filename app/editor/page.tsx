@@ -19,11 +19,22 @@ import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { FeedbackModal } from "@/components/FeedbackModal";
 import { SignInLimitModal } from "@/components/SignInLimitModal";
+import AiButton from "@/components/AiButton";
+import ConversionCodePanel from "@/components/codeConversion/conversion";
 
 function EditorPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const session = useSession();
+
+  const [isMobileView, setIsMobileView] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobileView(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const {
     selectedFile,
@@ -59,20 +70,6 @@ function EditorPageContent() {
       setLanguage(langParam);
     }
   }, [searchParams]);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      const mobileCheck = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && window.innerWidth < 768;
-      setIsMobile(mobileCheck);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-
-    return () => {
-      window.removeEventListener('resize', checkMobile);
-    };
-  }, []);
 
   useEffect(() => {
     if (selectedFile?.name) {
@@ -164,7 +161,7 @@ function EditorPageContent() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    
+
     toast.success(`Exported ${exportName}`);
   };
 
@@ -292,35 +289,6 @@ function EditorPageContent() {
     }
   };
 
-  if (isMobile) {
-    return (
-      <div className="h-screen w-full flex flex-col items-center justify-center bg-[#1e1e1e] text-center p-6">
-        <div className="max-w-md mx-auto">
-          <div className="relative mx-auto mb-6 w-16 h-16">
-            <Smartphone className="h-16 w-16 text-gray-500 absolute" />
-            <XCircle className="h-8 w-8 text-red-500 absolute bottom-0 right-0" />
-          </div>
-          <h1 className="text-2xl font-bold text-emerald-400 mb-4">Nice try, but not today!</h1>
-          <p className="text-gray-300 mb-6">
-            We admire your enthusiasm, but coding on a phone is like trying to paint a masterpiece with your elbow.
-            Some things just need the right tools.
-          </p>
-          <div className="bg-gray-800/50 rounded-lg p-4 mb-6">
-            <p className="text-yellow-400 text-sm mb-2">Friendly heads-up:</p>
-            <p className="text-gray-400 text-sm">
-              This code editor needs a larger screen and a proper keyboard to work well.
-              Your phone screen is just too small for a good coding experience.
-            </p>
-          </div>
-          <div className="flex items-center justify-center">
-            <p className="text-emerald-400 text-sm">
-              Come back on a laptop, desktop, or tablet with keyboard. Your code (and fingers) will thank you!
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="h-screen flex flex-col bg-[#1e1e1e] text-gray-100">
@@ -335,9 +303,9 @@ function EditorPageContent() {
         isDirty={session.status === 'authenticated' ? isDirty : !!selectedFile?.content}
         fileName={selectedFile?.name}
       />
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
         {/* Fixed Activity Bar (Icon Strip) */}
-        <div className="flex-shrink-0 z-10 relative">
+        <div className="flex-shrink-0 z-50 h-full relative">
           <SidebarNav
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -345,37 +313,53 @@ function EditorPageContent() {
           />
         </div>
 
-        <ResizablePanelGroup direction="horizontal" className="flex-1 z-0">
-          {!collapsedSidebar && (
+        {/* Mobile File Explorer Overlay */}
+        {isMobileView && !collapsedSidebar && (
+          <div className="absolute inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={toggleSidebar}>
+            <div
+              className="absolute top-0 left-[52px] bottom-0 w-[85%] max-w-[320px] bg-[#1e1e1e] shadow-2xl border-r border-gray-800/50 flex flex-col shadow-emerald-500/10 animate-in slide-in-from-left duration-200"
+              onClick={(e) => e.stopPropagation()} // Prevent touches inside picker from closing
+            >
+              <FileExplorer onClose={() => isMobileView && setCollapsedSidebar(true)} />
+            </div>
+          </div>
+        )}
+
+        <ResizablePanelGroup key={isMobileView ? 'mobile' : 'desktop'} direction="horizontal" className="flex-1 z-0 auto-cols-auto">
+          {!collapsedSidebar && !isMobileView && (
             <>
               <ResizablePanel
-                defaultSize={20}
-                minSize={15}
-                maxSize={40}
-                className="flex border-r border-gray-800"
+                id="sidebar"
+                order={1}
+                defaultSize={isMobileView ? 85 : 20}
+                minSize={isMobileView ? 50 : 15}
+                maxSize={isMobileView ? 100 : 40}
+                className="flex border-r border-gray-800 z-20"
               >
                 <div className="flex h-full flex-1 bg-[#1e1e1e] overflow-hidden">
-                  <FileExplorer />
+                  <FileExplorer onClose={() => isMobileView && setCollapsedSidebar(true)} />
                 </div>
               </ResizablePanel>
-              <ResizableHandle withHandle className="bg-[#252525] hover:bg-[#2a2a2a] transition-colors" />
+              <ResizableHandle id="sidebar-handle" withHandle className="bg-[#252525] hover:bg-[#2a2a2a] transition-colors" />
             </>
           )}
 
-          <ResizablePanel defaultSize={collapsedSidebar ? 100 : 80} className="flex flex-col">
+          <ResizablePanel id="main" order={2} defaultSize={collapsedSidebar || isMobileView ? 100 : 80} className="flex flex-col">
             <ResizablePanelGroup direction="vertical" className="h-full">
-              <ResizablePanel defaultSize={70} className="min-h-[30%]">
+              <ResizablePanel id="editor-area" order={1} defaultSize={70} className="min-h-[30%]">
                 <div className="h-full w-full overflow-hidden">
                   {selectedFile ? (
-                    <div className="flex flex-col h-full">
-                      <div className="px-4 h-10 border-b border-gray-800 bg-[#252525] flex items-center justify-between flex-shrink-0">
-                        <div className="flex items-center gap-2.5">
-                          <span className="text-sm text-gray-200 font-medium">{selectedFile.name}</span>
-                          {isDirty && <span className="text-[10px] text-yellow-500">●</span>}
+                    <div className="flex flex-col h-full bg-[#1e1e1e]">
+                      <div className="px-4 pt-3 pb-2 flex items-center justify-between flex-shrink-0">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2 px-3 py-1.5 bg-[#252525]/40 rounded-full border border-gray-800/60 shadow-sm">
+                            <span className="text-xs text-gray-300 font-medium tracking-wide">{selectedFile.name}</span>
+                            {isDirty && <span className="text-[10px] text-yellow-500">●</span>}
+                          </div>
                           {/* Info tooltip */}
                           <div className="relative group flex items-center">
                             <Info className="h-3.5 w-3.5 text-gray-500 hover:text-gray-300 cursor-help transition-colors" />
-                            <div className="absolute left-0 top-6 z-50 hidden group-hover:block bg-[#1e1e1e] border border-gray-700/50 rounded-lg px-3 py-2.5 text-xs text-gray-300 whitespace-nowrap shadow-xl">
+                            <div className="absolute left-0 top-6 z-50 hidden group-hover:block bg-[#252525] border border-gray-700 rounded-lg px-3 py-2.5 text-xs text-gray-300 whitespace-nowrap shadow-xl">
                               <p className="mb-0.5"><span className="text-gray-500">File:</span> <span className="text-gray-200">{selectedFile.name}</span></p>
                               <p><span className="text-gray-500">Language:</span> <span className="text-gray-200">{language}</span></p>
                               <div className="mt-1.5 pt-1.5 border-t border-gray-700/50">
@@ -390,22 +374,30 @@ function EditorPageContent() {
                           </div>
                         </div>
 
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className={`h-7 w-7 ${aiSuggestionsEnabled ? 'text-yellow-400 hover:text-yellow-300 bg-yellow-500/10' : 'text-gray-500 hover:text-gray-300'} hover:bg-[#2a2a2a] transition-colors`}
-                          onClick={toggleAiSuggestions}
-                          title="AI Suggestions"
-                        >
-                          <Lightbulb className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <div className="md:hidden">
+                            <AiButton />
+                          </div>
+                          {/* AI Suggestions Feature Disabled per request 
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className={`h-7 px-3 rounded-full transition-all duration-200 ${aiSuggestionsEnabled ? 'text-yellow-400 bg-yellow-500/10 hover:bg-yellow-500/20' : 'text-gray-500 hover:text-gray-300 hover:bg-[#2a2a2a]'}`}
+                            onClick={toggleAiSuggestions}
+                            title="AI Suggestions"
+                          >
+                            <Lightbulb className="h-3.5 w-3.5 sm:mr-1.5" />
+                            <span className="hidden xl:inline text-xs font-medium">AI Suggestions</span>
+                          </Button>
+                          */}
+                        </div>
                       </div>
 
                       {/* AI Settings Panel */}
                       {showAiSettingsPanel && (
-                        <div className="px-4 h-10 border-b border-gray-800 bg-[#1e1e1e] flex items-center justify-between flex-shrink-0 shadow-inner">
+                        <div className="px-4 py-2 mx-4 mb-2 rounded-lg border border-gray-800/80 bg-[#252525]/30 flex items-center justify-between flex-shrink-0">
                           <div className="flex items-center gap-3">
-                            <span className="text-sm text-gray-300">AI suggestions</span>
+                            <span className="text-xs text-gray-400 font-medium tracking-wide uppercase">AI Settings</span>
                             <Switch
                               checked={aiSuggestionsEnabled}
                               onCheckedChange={(checked: boolean) => {
@@ -414,17 +406,17 @@ function EditorPageContent() {
                                   handleForceSuggestions();
                                 }
                               }}
-                              className="data-[state=checked]:bg-emerald-600 scale-[0.8]"
+                              className="data-[state=checked]:bg-emerald-600 scale-[0.7]"
                             />
                           </div>
                           {aiSuggestionsEnabled && (
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-7 px-3 text-xs font-medium text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+                              className="h-6 px-3 text-[11px] font-medium text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 rounded-full"
                               onClick={handleForceSuggestions}
                             >
-                              Generate Suggestions
+                              Generate
                             </Button>
                           )}
                         </div>
@@ -508,9 +500,9 @@ function EditorPageContent() {
                 </div>
               </ResizablePanel>
 
-              <ResizableHandle withHandle className="bg-[#252525] hover:bg-[#2a2a2a] transition-colors" />
+              <ResizableHandle id="terminal-handle" withHandle className="bg-[#252525] hover:bg-[#2a2a2a] transition-colors" />
 
-              <ResizablePanel defaultSize={30} className="min-h-[15%]">
+              <ResizablePanel id="terminal-area" order={2} defaultSize={30} className="min-h-[15%]">
                 <TerminalPanel
                   output={output}
                   status={status}
@@ -533,7 +525,7 @@ function EditorPageContent() {
         userName={session?.data?.user?.name || undefined}
       />
 
-      <SignInLimitModal 
+      <SignInLimitModal
         isOpen={isLimitModalOpen}
         onClose={() => setIsLimitModalOpen(false)}
       />

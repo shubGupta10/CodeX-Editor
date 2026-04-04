@@ -15,6 +15,11 @@ export interface User {
     updatedAt: string; 
     plan?: string;
     planExpiryDate?: string;
+    limits?: {
+        aiRequestCount: number;
+        conversionCount: number;
+        fileCount: number;
+    }
 }
 
 export interface CurrentUser {

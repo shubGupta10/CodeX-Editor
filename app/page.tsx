@@ -25,6 +25,7 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
+import PricingSection from "@/components/PricingSection"
 
 function Home() {
   return (
@@ -34,19 +35,19 @@ function Home() {
         <HeroSection />
 
         <section className="py-12 text-center">
-          <h2 className="text-xl font-semibold mb-4">Start Coding by Language</h2>
+          <h2 className="text-xl font-semibold mb-4 text-emerald-400">Start Coding by Language</h2>
 
           <div className="flex flex-wrap justify-center gap-4 text-sm">
-            <a href="/python-online-compiler" className="text-emerald-400 hover:underline">
+            <a href="/python-online-compiler" className="text-gray-400 hover:text-emerald-400 transition-colors">
               Python
             </a>
-            <a href="/javascript-online-compiler" className="text-emerald-400 hover:underline">
+            <a href="/javascript-online-compiler" className="text-gray-400 hover:text-emerald-400 transition-colors">
               JavaScript
             </a>
-            <a href="/java-online-compiler" className="text-emerald-400 hover:underline">
+            <a href="/java-online-compiler" className="text-gray-400 hover:text-emerald-400 transition-colors">
               Java
             </a>
-            <a href="/typescript-online-compiler" className="text-emerald-400 hover:underline">
+            <a href="/typescript-online-compiler" className="text-gray-400 hover:text-emerald-400 transition-colors">
               TypeScript
             </a>
           </div>
@@ -54,6 +55,7 @@ function Home() {
 
         <FeatureSection />
         <AIFeaturesSection />
+        <PricingSection />
         <CTASection />
       </main>
     </div>

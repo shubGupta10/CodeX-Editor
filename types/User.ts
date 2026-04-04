@@ -1,3 +1,6 @@
+/**
+ * Primary user profile information as defined in the database.
+ */
 export interface User {
     id?: string;
     firstName?: string;
@@ -10,6 +13,8 @@ export interface User {
     lastLogin: string; 
     createdAt: string; 
     updatedAt: string; 
+    plan?: string;
+    planExpiryDate?: string;
 }
 
 export interface CurrentUser {

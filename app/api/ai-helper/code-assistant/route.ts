@@ -2,10 +2,8 @@ import { NextResponse, NextRequest } from "next/server";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/options";
-import { aiRateLimit } from "@/lib/ratelimit";
+import { checkUsage, recordUsage } from "@/lib/usage";
 import redis from "@/redis/redis";
-import UserLimitModel from "@/models/User_limit";
-import { ConnectoDatabase } from "@/lib/db";
 
 const MAX_LOGGED_IN_REQUESTS = 5;
 const MAX_GUEST_REQUESTS = 2;
@@ -13,85 +11,18 @@ const ONE_DAY_IN_SECONDS = 86400;
 
 export async function POST(req: NextRequest) {
   try {
-    await ConnectoDatabase();
-    const { prompt, code, isGuest } = await req.json();
+    const { prompt, code } = await req.json();
     const session = await getServerSession(authOptions);
+    const userId = session?.user?.id;
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
 
-    if (!prompt || !code) {
+    // 1. Unified Usage Check (Redis-to-DB sync)
+    const usage = await checkUsage(userId || null, "ai", ip);
+    if (!usage.allowed) {
       return NextResponse.json(
-        { message: "Prompt and code are required" },
-        { status: 400 }
+        { message: usage.message },
+        { status: 429 }
       );
-    }
-
-    if (!process.env.GOOGLE_GEMINI_API_KEY) {
-      console.error("Missing Gemini API key");
-      return NextResponse.json(
-        { message: "Server configuration error" },
-        { status: 500 }
-      );
-    }
-
-    const userId = session?.user?.id || 'guest';
-    const MAX_DAILY_REQUESTS = isGuest ? MAX_GUEST_REQUESTS : MAX_LOGGED_IN_REQUESTS;
-
-    // Rate limiting (fail-open if Redis is down)
-    if (isGuest) {
-      try {
-        const redisKey = `guest:daily_requests`;
-        const requestCount = await redis.incr(redisKey);
-
-        if (requestCount === 1) {
-          await redis.expire(redisKey, ONE_DAY_IN_SECONDS);
-        }
-
-        if (requestCount > MAX_GUEST_REQUESTS) {
-          return NextResponse.json(
-            { message: `Guest users are limited to ${MAX_GUEST_REQUESTS} AI conversations per day.` },
-            { status: 429 }
-          );
-        }
-      } catch (redisError) {
-        console.error("Redis error in code-assistant guest check:", redisError);
-      }
-    } else {
-      // Logged-in user rate limiting
-      const limitResult = await aiRateLimit(userId);
-      if (!limitResult.success) {
-        return NextResponse.json(
-          { message: limitResult.message },
-          { status: 429 }
-        );
-      }
-
-      try {
-        const redisKey = `user:${userId}:daily_requests`;
-        const requestCount = await redis.incr(redisKey);
-
-        if (requestCount === 1) {
-          await redis.expire(redisKey, ONE_DAY_IN_SECONDS);
-        }
-
-        if (requestCount > MAX_LOGGED_IN_REQUESTS) {
-          return NextResponse.json(
-            { message: `You have exceeded the daily limit of ${MAX_LOGGED_IN_REQUESTS} AI requests.` },
-            { status: 429 }
-          );
-        }
-      } catch (redisError) {
-        console.error("Redis error in code-assistant user check:", redisError);
-      }
-
-      // Store request count in DB for tracking
-      try {
-        await UserLimitModel.findOneAndUpdate(
-          { userId },
-          { $inc: { fileCount: 1 } },
-          { upsert: true, new: true }
-        );
-      } catch (dbError) {
-        console.error("DB tracking error in code-assistant:", dbError);
-      }
     }
 
     const llm = new ChatGoogleGenerativeAI({
@@ -120,43 +51,38 @@ export async function POST(req: NextRequest) {
     
     Now, generate the best possible response in **Markdown format**.`;
 
-    try {
-      const stream = await llm.stream(fullPrompt);
-      const readableStream = new ReadableStream({
-        async start(controller) {
-          try {
-            for await (const chunk of stream) {
-              if (chunk.content) {
-                const content =
-                  typeof chunk.content === "string"
-                    ? chunk.content
-                    : JSON.stringify(chunk.content);
-                controller.enqueue(new TextEncoder().encode(content));
-              }
+    const stream = await llm.stream(fullPrompt);
+    const readableStream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of stream) {
+            if (chunk.content) {
+              const content =
+                typeof chunk.content === "string"
+                  ? chunk.content
+                  : JSON.stringify(chunk.content);
+              controller.enqueue(new TextEncoder().encode(content));
             }
-            controller.close();
-          } catch (error) {
-            console.error("Streaming error:", error);
-            controller.error(error);
           }
-        },
-      });
+          
+          // Finalize Consumption on completion
+          await recordUsage(userId || null, "ai", ip);
+          controller.close();
+        } catch (error) {
+          console.error("Streaming error:", error);
+          controller.error(error);
+        }
+      },
+    });
 
-      return new Response(readableStream, {
-        headers: {
-          "Content-Type": "text/plain; charset=utf-8",
-          "Cache-Control": "no-cache",
-        },
-      });
-    } catch (streamError: any) {
-      console.error("Error creating stream:", streamError);
-      return NextResponse.json(
-        { message: "Error generating AI response", error: streamError.message },
-        { status: 500 }
-      );
-    }
+    return new Response(readableStream, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-cache",
+      },
+    });
   } catch (error: any) {
-    console.error("Error in Gemini API:", error);
+    console.error("Error in AI Assistant:", error);
     return NextResponse.json(
       { message: "Internal Server Error", error: error.message },
       { status: 500 }

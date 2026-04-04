@@ -1,78 +1,24 @@
 import { ConnectoDatabase } from "@/lib/db";
 import { authOptions } from "@/lib/options";
-import redis from "@/redis/redis";
-import UserLimitModel from "@/models/User_limit";
+import { checkUsage, recordUsage } from "@/lib/usage";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { getServerSession } from "next-auth";
 import { NextResponse, NextRequest } from "next/server";
-
-const REQUEST_LIMIT_LOGGED_IN = 5;
-const REQUEST_LIMIT_GUEST = 2;
-const TIME_LIMIT = 24 * 60 * 60;
 
 export async function POST(req: NextRequest) {
     try {
         await ConnectoDatabase();
         const session = await getServerSession(authOptions);
         const userId = session?.user?.id;
+        const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
 
-        const REQUEST_LIMIT = userId ? REQUEST_LIMIT_LOGGED_IN : REQUEST_LIMIT_GUEST;
-
-        const userKey = userId 
-            ? `conversion-limit-${userId}` 
-            : `conversion-limit-guest-${req.headers.get('x-forwarded-for') || 'unknown'}`;
-
-        // Check rate limit in Redis (fail-open if Redis is down)
-        try {
-            const requestCount = await redis.get(userKey);
-            if (requestCount && parseInt(requestCount.toString()) >= REQUEST_LIMIT) {
-                return NextResponse.json({ 
-                    message: userId 
-                        ? "Rate limit exceeded, try again after 24 hours" 
-                        : "Guest user limit reached. Please sign in for more conversions.",
-                    requiresSignIn: !userId 
-                }, { status: 429 });
-            }
-        } catch (redisError) {
-            console.error("Redis error in code-converter (skipping rate limit):", redisError);
-        }
-
-        // If logged-in user, check and increment MongoDB limits
-        if (userId) {
-            const userLimit = await UserLimitModel.findOneAndUpdate(
-                { userId },
-                {
-                    $setOnInsert: {
-                        conversionLimit: REQUEST_LIMIT_LOGGED_IN,
-                        conversionResetAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-                    },
-                },
-                { upsert: true, new: true }
-            );
-
-            if (new Date() > userLimit.conversionResetAt) {
-                userLimit.conversionCount = 0;
-                userLimit.conversionResetAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-                await userLimit.save();
-            }
-
-            if (userLimit.conversionCount >= userLimit.conversionLimit) {
-                return NextResponse.json({ 
-                    message: "Conversion limit exceeded, try again after 24 hours",
-                    requiresSignIn: false 
-                }, { status: 429 });
-            }
-
-            userLimit.conversionCount += 1;
-            await userLimit.save();
-        }
-
-        // Increment Redis counter (fail-open)
-        try {
-            await redis.incr(userKey);
-            await redis.expire(userKey, TIME_LIMIT);
-        } catch (redisError) {
-            console.error("Redis incr error in code-converter:", redisError);
+        // 1. Unified Usage Check (Redis-to-DB sync)
+        const usage = await checkUsage(userId || null, "conversion", ip);
+        if (!usage.allowed) {
+            return NextResponse.json({ 
+                message: usage.message,
+                requiresSignIn: !userId 
+            }, { status: 429 });
         }
 
         const { codeSnippet, sourceLanguage, targetLanguage } = await req.json();
@@ -108,6 +54,9 @@ export async function POST(req: NextRequest) {
                         controller.enqueue(new TextEncoder().encode(chunk.content));
                     }
                 }
+                
+                // Finalize Consumption on completion
+                await recordUsage(userId || null, "conversion", ip);
                 controller.close();
             }
         });

@@ -1,5 +1,8 @@
 import mongoose, { Model, Schema } from "mongoose";
 
+/**
+ * Shared User interface used across the database layer.
+ */
 interface Users {
     firstName: string;
     lastName: string;
@@ -10,6 +13,8 @@ interface Users {
     isAdmin: boolean;
     provider: string;
     lastLogin: Date;
+    plan?: string;
+    planExpiryDate?: Date | null;
 }
 
 const userSchema = new Schema<Users>({
@@ -32,6 +37,15 @@ const userSchema = new Schema<Users>({
       lastLogin: {
         type: Date,
         default: Date.now
+      },
+      plan: {
+        type: String,
+        enum: ["free", "pro"],
+        default: "free"
+      },
+      planExpiryDate: {
+        type: Date,
+        default: null
       }
 }, { timestamps: true });
 

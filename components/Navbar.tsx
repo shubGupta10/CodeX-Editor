@@ -129,8 +129,11 @@ function Navbar() {
               {[
                 { href: "/", label: "Home" },
                 { href: "/editor", label: "Editor" },
-                { href: "/profile", label: "Profile" },
-                { href: "/feedback-form", label: "Feedback" },
+                { href: "/pricing", label: "Pricing" },
+                ...(user ? [
+                  { href: "/profile", label: "Profile" },
+                  { href: "/feedback-form", label: "Feedback" },
+                ] : []),
               ].map((link) => (
                 <Link
                   key={link.href}
@@ -143,7 +146,7 @@ function Navbar() {
                   {link.label}
                 </Link>
               ))}
-              {currentUser?.isAdmin === true && (
+              {user && currentUser?.isAdmin === true && (
                 <div className="relative group">
                   <button
                     className={`px-4 py-2 rounded-md text-[15px] font-medium transition-colors ${pathname.startsWith("/admin")
@@ -256,7 +259,11 @@ function Navbar() {
                     {[
                       { href: "/", label: "Home" },
                       { href: "/editor", label: "Editor" },
-                      { href: "/feedback-form", label: "Feedback" },
+                      { href: "/pricing", label: "Pricing" },
+                      ...(user ? [
+                        { href: "/profile", label: "Profile" },
+                        { href: "/feedback-form", label: "Feedback" },
+                      ] : []),
                     ].map((link) => (
                       <Link
                         key={link.href}

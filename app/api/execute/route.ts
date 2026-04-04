@@ -1,5 +1,8 @@
 import { rateLimit } from "@/lib/ratelimit";
+import { checkUsage, recordUsage } from "@/lib/usage";
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/options";
 
 const ONECOMPILER_API_URL = "https://api.onecompiler.com/v1/run";
 const MAX_CODE_LENGTH = 50_000; // 50KB max code size
@@ -23,8 +26,20 @@ export async function POST(req: Request) {
     }
 
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
-    const rateLimitResult = await rateLimit(ip);
+    
+    // 1. Identify User & Check Limits
+    const session = await getServerSession(authOptions);
+    const userId = session?.user?.id;
+    const isGuest = !userId;
 
+    // 1. Unified Usage Check (Redis-to-DB sync)
+    const usage = await checkUsage(userId || null, "ai", ip);
+    if (!usage.allowed) {
+      return NextResponse.json({ error: usage.message }, { status: 403 });
+    }
+
+    // 2. IP-based Rate Limiting (Secondary layer)
+    const rateLimitResult = await rateLimit(ip);
     if (!rateLimitResult.success) {
       return NextResponse.json({ error: rateLimitResult.message }, { status: 429 });
     }
@@ -35,8 +50,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Code and language are required" }, { status: 400 });
     }
 
-    if (typeof code !== "string" || code.length > MAX_CODE_LENGTH) {
-      return NextResponse.json({ error: `Code must be a string under ${MAX_CODE_LENGTH} characters` }, { status: 400 });
+    // 3. Payload Hardening
+    const currentMaxKB = isGuest ? 5_000 : MAX_CODE_LENGTH; // Tighter limit for guests
+    if (typeof code !== "string" || code.length > currentMaxKB) {
+      return NextResponse.json({ error: `Code is too large (${Math.round(code.length/1024)}KB). ${isGuest ? 'Sign in' : 'Upgrade'} for larger files.` }, { status: 400 });
     }
 
     const compilerLanguage = languageMapping[language];
@@ -79,6 +96,11 @@ export async function POST(req: Request) {
     }
 
     const result = await response.json();
+
+    // 4. Update Consumption on Success
+    if (result.stdout !== undefined || result.stderr !== undefined) {
+      await recordUsage(userId || null, "ai", ip);
+    }
 
     return NextResponse.json({
       output: result.stdout || "",

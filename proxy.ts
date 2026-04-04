@@ -15,6 +15,8 @@ const publicRoutes = [
   "/typescript-online-compiler",
   "/java-online-compiler",
   "/ogImage.png",
+  "/pricing",
+  "/apple-touch-icon.png"
 ];
 
 function isPublicRoute(pathname: string): boolean {
@@ -49,6 +51,6 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
+    "/((?!api/auth|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.*\\.png$|.*\\.svg$|.*\\.ico$|.*\\.webmanifest$).*)",
   ],
 };

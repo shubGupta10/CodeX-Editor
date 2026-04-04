@@ -130,9 +130,12 @@ function ProfilePage() {
                         <h3 className="text-white text-3xl font-semibold tracking-tight">
                           {user.firstName} {user.lastName}
                         </h3>
-                        <div className="flex flex-wrap gap-2 mt-3 justify-center sm:justify-start">
+                        <div className="flex flex-wrap gap-2 mt-3 justify-center sm:justify-start items-center">
                           <Badge className="bg-[#252525] text-emerald-400 hover:bg-[#252525] border-transparent text-sm px-3 py-1 font-mono rounded-md">
                             @{user.username}
+                          </Badge>
+                          <Badge className="bg-emerald-600/20 text-emerald-400 border-emerald-600/30 text-[11px] px-2 py-0.5 font-bold lowercase tracking-widest rounded">
+                            {user.plan || "free"}
                           </Badge>
                         </div>
                       </motion.div>

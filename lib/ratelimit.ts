@@ -58,3 +58,28 @@ export async function aiRateLimit(userId: string) {
     return { success: true, remaining: AI_LIMIT, resetIn: AI_WINDOW };
   }
 }
+
+export async function checkGuestExecution(ip: string) {
+  try {
+    const key = `guest-execute:${ip}`;
+    const count = await redis.get(key);
+    
+    if (count && parseInt(count as string) >= 1) {
+      return { success: false, message: "Guest limit reached. Sign in for more!" };
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Guest execution limit error:", error);
+    return { success: true }; // Fail-open
+  }
+}
+
+export async function incrementGuestExecution(ip: string) {
+  try {
+    const key = `guest-execute:${ip}`;
+    await redis.set(key, "1", { ex: 24 * 3600 }); // 24 hour lockout
+  } catch (error) {
+    console.error("Increment guest execution error:", error);
+  }
+}
